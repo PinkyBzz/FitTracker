@@ -102,9 +102,7 @@
         <header class="hidden md:flex items-center justify-between px-8 py-6 border-b border-zinc-900 bg-zinc-950/50 backdrop-blur-xl sticky top-0 z-40">
             <h2 class="text-xl font-semibold text-white">Workout Log</h2>
             <div class="flex items-center gap-4">
-                <button class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
-                    <span class="iconify" data-icon="lucide:bell" data-width="18"></span>
-                </button>
+                <!-- Bell button removed -->
             </div>
         </header>
 
@@ -114,9 +112,6 @@
                 <h1 class="text-xl font-medium tracking-tighter text-white">FitTrack</h1>
                 <div id="user-greeting" class="text-sm text-zinc-500 font-medium mt-1">Halo, User!</div>
             </div>
-            <button class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 text-zinc-400 hover:bg-zinc-800 transition-colors">
-                 <span class="iconify" data-icon="lucide:bell" data-width="14"></span>
-            </button>
         </header>
 
         <main class="px-6 md:px-8 py-6 space-y-6 pb-32 md:pb-8 max-w-7xl mx-auto w-full">
@@ -164,7 +159,13 @@
 
                 <!-- History List Column -->
                 <div class="lg:col-span-2">
-                    <h3 class="text-sm font-medium text-zinc-400 mb-3">Riwayat Terakhir</h3>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-medium text-zinc-400">Riwayat Terakhir</h3>
+                        <button onclick="shareWorkout()" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 btn-3d btn-3d-dark">
+                            <span class="iconify" data-icon="lucide:share-2" data-width="14"></span>
+                            Share Today
+                        </button>
+                    </div>
                     <div id="workout-history" class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto no-scrollbar pr-1">
                         <!-- History items will be injected here via JS -->
                     </div>

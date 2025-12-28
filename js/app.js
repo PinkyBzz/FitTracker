@@ -146,18 +146,71 @@ function renderWorkoutHistory() {
     APP_DATA.workouts.forEach(w => {
         const date = new Date(w.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
         const div = document.createElement('div');
-        div.className = 'p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm mb-3';
+        div.className = 'p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm mb-3 group relative card-3d';
+        div.setAttribute('data-tilt', '');
+        div.setAttribute('data-tilt-max', '2');
+        div.setAttribute('data-tilt-speed', '400');
+        div.setAttribute('data-tilt-glare', '');
+        div.setAttribute('data-tilt-max-glare', '0.05');
+        
         div.innerHTML = `
-            <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-medium">${date}</div>
+            <div class="flex justify-between items-start">
+                <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-medium">${date}</div>
+                <button onclick="deleteWorkout(${w.id})" class="text-zinc-600 hover:text-red-500 transition-colors p-1 -mr-2 -mt-2 opacity-0 group-hover:opacity-100">
+                    <span class="iconify" data-icon="lucide:trash-2" data-width="14"></span>
+                </button>
+            </div>
             <div class="flex justify-between items-start mb-1">
                 <h3 class="text-sm font-medium text-white">${w.name}</h3>
                 <div class="text-xs font-medium text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded-md border border-indigo-500/20">
-                    ${w.weight}kg <span class="text-zinc-500 mx-1">|</span> ${w.sets} set
+                    ${w.weight} <span class="text-zinc-500 mx-1">|</span> ${w.sets}
                 </div>
             </div>
             <div class="text-xs text-zinc-400 italic">"${w.notes}"</div>
         `;
         container.appendChild(div);
+    });
+    
+    // Re-init tilt for new elements
+    if (window.VanillaTilt) {
+        VanillaTilt.init(container.querySelectorAll('.card-3d'));
+    }
+}
+
+window.deleteWorkout = function(id) {
+    if(!confirm('Hapus log latihan ini?')) return;
+    APP_DATA.workouts = APP_DATA.workouts.filter(w => w.id !== id);
+    saveData();
+    renderWorkoutHistory();
+    updateStats(); // Update dashboard stats if needed
+}
+
+window.shareWorkout = function() {
+    if (APP_DATA.workouts.length === 0) {
+        alert('Belum ada data latihan untuk dibagikan!');
+        return;
+    }
+    
+    // Get today's workouts
+    const today = new Date().toDateString();
+    const todaysWorkouts = APP_DATA.workouts.filter(w => new Date(w.date).toDateString() === today);
+
+    if (todaysWorkouts.length === 0) {
+         alert('Belum ada latihan hari ini. Semangat latihan dulu!');
+         return;
+    }
+
+    let text = `🔥 FitTrack Workout Summary (${new Date().toLocaleDateString('id-ID')})\n\n`;
+    todaysWorkouts.forEach(w => {
+        text += `💪 ${w.name}: ${w.weight} (${w.sets})\n`;
+    });
+    text += `\n#FitTrack #PejuangOtot`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Ringkasan latihan berhasil disalin! Siap dipamerkan di sosmed 😎');
+    }).catch(err => {
+        console.error('Gagal menyalin: ', err);
+        alert('Gagal menyalin teks. Izin clipboard mungkin ditolak.');
     });
 }
 
