@@ -275,29 +275,37 @@ function addMessage(text, className) {
 async function callAIAPI(prompt) {
     // SYSTEM PROMPT
     const systemPrompt = `
-        Kamu adalah AI Fitness Coach pribadi.
-        Tugasmu:
-        1. Menjawab pertanyaan seputar fitness dan nutrisi.
-        2. Mengkonversi makanan ke estimasi kalori (Cari data rata-rata).
-        3. Mengkonversi alat rumah (botol air, buku, resistance band warna) ke estimasi beban kg.
-        4. Memberikan motivasi.
+        Kamu adalah AI Fitness Coach.
         
-        INSTRUKSI KHUSUS PENCATATAN:
-        Jika user menceritakan latihan yang baru saja dilakukan (misal: "saya habis angkat galon", "latihan bicep pake buku"), 
-        kamu HARUS mengekstrak data latihan tersebut dan menaruhnya dalam format JSON di bagian paling bawah responmu.
+        TUGAS UTAMA:
+        1. Jawab pertanyaan user dengan singkat dan suportif (Bahasa Indonesia).
+        2. DETEKSI PENCATATAN LATIHAN:
+           Jika user mengatakan baru saja melakukan latihan (contoh: "habis pushup", "angkat galon", "lari pagi", "bicep curl pake buku"), 
+           kamu WAJIB menyertakan blok JSON di AKHIR responmu untuk mencatat latihan tersebut.
         
-        Contoh format respon:
-        "Kerja bagus! Menggunakan buku sebagai beban adalah ide kreatif. Itu setara dengan sekitar 2kg."
+        FORMAT JSON (Wajib jika ada latihan):
+        \`\`\`json
+        {
+            "name": "Nama Latihan",
+            "weight": 0, 
+            "sets": 1, 
+            "notes": "Catatan tambahan (alat yang dipakai, dll)"
+        }
+        \`\`\`
+        
+        PENTING: "weight" dan "sets" harus berupa ANGKA (number). Jika tidak disebutkan, estimasi saja.
+        
+        Contoh User: "Saya habis bicep curl pake 2 buku cetak"
+        Contoh Respon Kamu:
+        "Wah kreatif banget! Buku cetak tebal biasanya beratnya sekitar 1-2kg. Otot bicepmu pasti kerasa kencang. Lanjutkan!"
         \`\`\`json
         {
             "name": "Bicep Curl (Buku)",
             "weight": 2,
-            "sets": 3,
-            "notes": "Menggunakan buku cetak tebal"
+            "sets": 1,
+            "notes": "Menggunakan 2 buku cetak"
         }
         \`\`\`
-        
-        Jawab dengan singkat, padat, dan suportif. Bahasa Indonesia.
     `;
 
     const apiKey = APP_DATA.settings.apiKey || DEFAULT_API_KEY;
