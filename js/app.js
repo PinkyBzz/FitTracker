@@ -497,6 +497,21 @@ function setupEventListeners() {
     if (uploadBtn) {
         uploadBtn.addEventListener('click', handlePhotoUpload);
     }
+
+    // Date Filters
+    const workoutDateFilter = document.getElementById('workout-date-filter');
+    if (workoutDateFilter) {
+        workoutDateFilter.addEventListener('change', (e) => {
+            renderWorkoutHistory(e.target.value);
+        });
+    }
+
+    const mealDateFilter = document.getElementById('meal-date-filter');
+    if (mealDateFilter) {
+        mealDateFilter.addEventListener('change', (e) => {
+            renderMealHistory(e.target.value);
+        });
+    }
 }
 
 function renderDashboardWorkouts() {
@@ -536,12 +551,31 @@ function renderDashboardWorkouts() {
     });
 }
 
-function renderWorkoutHistory() {
+function renderWorkoutHistory(filterDate = null) {
     const container = document.getElementById('workout-history');
     if (!container) return;
     container.innerHTML = '';
 
-    APP_DATA.workouts.forEach(w => {
+    let workouts = APP_DATA.workouts;
+
+    // Filter by date if provided
+    if (filterDate) {
+        workouts = workouts.filter(w => {
+            const wDate = new Date(w.date);
+            const year = wDate.getFullYear();
+            const month = String(wDate.getMonth() + 1).padStart(2, '0');
+            const day = String(wDate.getDate()).padStart(2, '0');
+            const wDateStr = `${year}-${month}-${day}`;
+            return wDateStr === filterDate;
+        });
+    }
+
+    if (workouts.length === 0) {
+        container.innerHTML = '<div class="text-xs text-zinc-500 text-center py-4">Tidak ada latihan pada tanggal ini</div>';
+        return;
+    }
+
+    workouts.forEach(w => {
         const date = new Date(w.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
         const div = document.createElement('div');
         div.className = 'p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm mb-3 group relative card-3d';
@@ -612,18 +646,31 @@ window.shareWorkout = function() {
     });
 }
 
-function renderMealHistory() {
+function renderMealHistory(filterDate = null) {
     const container = document.getElementById('meal-history');
     if (!container) return;
     container.innerHTML = '';
 
-    if (APP_DATA.meals.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center text-zinc-500 text-xs py-4">Belum ada data makan hari ini</div>`;
+    let meals = APP_DATA.meals;
+
+    // Filter by date if provided
+    if (filterDate) {
+        meals = meals.filter(m => {
+            const mDate = new Date(m.date);
+            const year = mDate.getFullYear();
+            const month = String(mDate.getMonth() + 1).padStart(2, '0');
+            const day = String(mDate.getDate()).padStart(2, '0');
+            const mDateStr = `${year}-${month}-${day}`;
+            return mDateStr === filterDate;
+        });
+    }
+
+    if (meals.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center text-zinc-500 text-xs py-4">Belum ada data makan pada tanggal ini</div>`;
         return;
     }
 
-    // Filter for today only? Or show all? Let's show all for now, sorted by date
-    APP_DATA.meals.forEach(m => {
+    meals.forEach(m => {
         const date = new Date(m.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
         const div = document.createElement('div');
         div.className = 'p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm';

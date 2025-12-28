@@ -184,12 +184,17 @@
 
                 <!-- History List Column -->
                 <div class="lg:col-span-2">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-medium text-zinc-400">Riwayat Terakhir</h3>
-                        <button onclick="shareWorkout()" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 btn-3d btn-3d-dark">
-                            <span class="iconify" data-icon="lucide:share-2" data-width="14"></span>
-                            Share Today
-                        </button>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                        <h3 class="text-sm font-medium text-zinc-400">Riwayat Latihan</h3>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative flex-1 sm:flex-none">
+                                <input type="date" id="workout-date-filter" class="w-full sm:w-auto bg-zinc-900 border border-zinc-800 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 transition-colors">
+                            </div>
+                            <button onclick="shareWorkout()" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 btn-3d btn-3d-dark whitespace-nowrap">
+                                <span class="iconify" data-icon="lucide:share-2" data-width="14"></span>
+                                Share
+                            </button>
+                        </div>
                     </div>
                     <div id="workout-history" class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto no-scrollbar pr-1">
                         <!-- History items will be injected here via JS -->
