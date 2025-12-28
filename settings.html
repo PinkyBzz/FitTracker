@@ -43,6 +43,7 @@
                 <span class="iconify" data-icon="lucide:image" data-width="20"></span>
                 Gallery
             </a>
+
             <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-zinc-900 text-white shadow-inner border border-zinc-800/50">
                 <span class="iconify" data-icon="lucide:settings-2" data-width="20"></span>
                 Settings
@@ -68,8 +69,13 @@
         <!-- Desktop Header -->
         <header class="hidden md:flex items-center justify-between px-8 py-6 border-b border-zinc-900 bg-zinc-950/50 backdrop-blur-xl sticky top-0 z-40">
             <h2 class="text-xl font-semibold text-white">Settings</h2>
-            <div class="flex items-center gap-4">
-                <!-- Bell button removed -->
+            <div class="flex items-center gap-3">
+                <button onclick="window.location.href='information.html'" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Information">
+                    <span class="iconify" data-icon="lucide:info" data-width="18"></span>
+                </button>
+                <button onclick="window.location.href='settings.html'" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Settings">
+                    <span class="iconify" data-icon="lucide:settings" data-width="18"></span>
+                </button>
             </div>
         </header>
 
@@ -78,6 +84,14 @@
             <div>
                 <h1 class="text-xl font-medium tracking-tighter text-white">FitTrack</h1>
                 <div id="user-greeting" class="text-sm text-zinc-500 font-medium mt-1">Halo, User!</div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="window.location.href='information.html'" class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 text-zinc-400 hover:bg-zinc-800 transition-colors">
+                     <span class="iconify" data-icon="lucide:info" data-width="14"></span>
+                </button>
+                <button onclick="window.location.href='settings.html'" class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 text-zinc-400 hover:bg-zinc-800 transition-colors">
+                     <span class="iconify" data-icon="lucide:settings" data-width="14"></span>
+                </button>
             </div>
         </header>
 
@@ -116,6 +130,15 @@
                         Simpan Pengaturan
                     </button>
 
+                    <!-- Data Management Section -->
+                    <div class="mb-6 pt-4 border-t border-zinc-800/50">
+                        <h4 class="text-xs font-medium text-zinc-400 mb-3 ml-1">Manajemen Data</h4>
+                        <button id="export-data" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-3 rounded-xl transition-all border border-zinc-700 flex items-center justify-center gap-2">
+                            <span class="iconify" data-icon="lucide:download" data-width="18"></span>
+                            Export Data (CSV)
+                        </button>
+                    </div>
+
                     <div class="border-t border-zinc-800/50 pt-6">
                         <h4 class="text-xs font-medium text-red-400 mb-3 ml-1">Zona Bahaya</h4>
                         <button id="clear-data" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium py-3 rounded-xl transition-all border border-red-500/20 flex items-center justify-center gap-2">
@@ -143,6 +166,7 @@
         <button class="nav-item group flex flex-col items-center justify-center w-12 h-12 text-zinc-500 hover:text-zinc-300 transition-colors" onclick="window.location.href='gallery.html'">
             <span class="iconify group-hover:scale-110 transition-transform" data-icon="lucide:image" data-width="20"></span>
         </button>
+
         <button class="nav-item group flex flex-col items-center justify-center w-12 h-12 text-zinc-500 hover:text-zinc-300 transition-colors" onclick="window.location.href='settings.html'">
             <span class="iconify group-hover:scale-110 transition-transform" data-icon="lucide:settings-2" data-width="20"></span>
         </button>

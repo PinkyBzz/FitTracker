@@ -9,16 +9,21 @@ const APP_DATA = {
     workouts: [],
     meals: [],
     photos: [],
+    weightLogs: [], // New: Store weight history
     settings: {
         apiKey: DEFAULT_API_KEY,
         username: 'User',
-        startWeight: 0
+        startWeight: 0, // Acts as Current Weight
+        height: 0,
+        targetWeight: 0,
+        targetWorkouts: 0
     }
 };
 
 // LOAD DATA ON STARTUP
 document.addEventListener('DOMContentLoaded', () => {
     loadAllData();
+    checkOnboarding(); 
     updateUI();
     initChart();
     setupEventListeners();
@@ -29,14 +34,24 @@ function loadAllData() {
     const savedMeals = localStorage.getItem('pt_meals');
     const savedPhotos = localStorage.getItem('pt_photos');
     const savedSettings = localStorage.getItem('pt_settings');
+    const savedWeightLogs = localStorage.getItem('pt_weight_logs');
 
     if (savedWorkouts) APP_DATA.workouts = JSON.parse(savedWorkouts);
     if (savedMeals) APP_DATA.meals = JSON.parse(savedMeals);
     if (savedPhotos) APP_DATA.photos = JSON.parse(savedPhotos);
+    if (savedWeightLogs) APP_DATA.weightLogs = JSON.parse(savedWeightLogs);
+    
     if (savedSettings) {
         APP_DATA.settings = JSON.parse(savedSettings);
-        // Force update API Key
         APP_DATA.settings.apiKey = DEFAULT_API_KEY; 
+    }
+
+    // Migration: If no logs but we have startWeight, create first log
+    if (APP_DATA.weightLogs.length === 0 && APP_DATA.settings.startWeight > 0) {
+        APP_DATA.weightLogs.push({
+            date: new Date().toISOString(),
+            weight: parseFloat(APP_DATA.settings.startWeight)
+        });
     }
 }
 
@@ -45,6 +60,7 @@ function saveData() {
     localStorage.setItem('pt_meals', JSON.stringify(APP_DATA.meals));
     localStorage.setItem('pt_photos', JSON.stringify(APP_DATA.photos));
     localStorage.setItem('pt_settings', JSON.stringify(APP_DATA.settings));
+    localStorage.setItem('pt_weight_logs', JSON.stringify(APP_DATA.weightLogs));
     updateUI();
 }
 
@@ -56,25 +72,134 @@ function updateUI() {
 
     // Dashboard Specific
     const weightDisplay = document.getElementById('current-weight');
-    if (weightDisplay) weightDisplay.textContent = APP_DATA.settings.startWeight + ' kg';
+    // Use last log as current weight if available, else settings
+    let currentWeight = APP_DATA.settings.startWeight;
+    if (APP_DATA.weightLogs && APP_DATA.weightLogs.length > 0) {
+        currentWeight = APP_DATA.weightLogs[APP_DATA.weightLogs.length - 1].weight;
+    }
+    if (weightDisplay) weightDisplay.textContent = currentWeight + ' kg';
     
     if (document.getElementById('weekly-workouts')) {
         updateStats();
     }
 
     // Settings Specific
-    // (Settings page removed)
+    const settingsName = document.getElementById('settings-name');
+    if (settingsName) settingsName.value = APP_DATA.settings.username;
+
+    const settingsWeight = document.getElementById('settings-weight');
+    if (settingsWeight) settingsWeight.value = currentWeight; // Show current weight from logs
 
     // Lists
-    if (document.getElementById('workout-history')) renderWorkoutHistory();
+    if (document.getElementById('workout-history')) {
+        renderWorkoutHistory();
+        updatePRs();
+    }
+    if (document.getElementById('dashboard-recent-workouts')) {
+        renderDashboardWorkouts();
+    }
     if (document.getElementById('meal-history')) renderMealHistory();
     if (document.getElementById('photo-grid')) renderPhotos();
+    
+    // Information Page Specific
+    if (document.getElementById('bmi-value')) updateInformationPage();
+}
+
+function checkOnboarding() {
+    // Only run on index.html if modal exists
+    const modal = document.getElementById('onboarding-modal');
+    if (!modal) return;
+
+    // Check if weight or height is missing (0 or undefined)
+    if (!APP_DATA.settings.startWeight || !APP_DATA.settings.height || APP_DATA.settings.startWeight == 0 || APP_DATA.settings.height == 0) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function updateInformationPage() {
+    const height = parseFloat(APP_DATA.settings.height) || 0;
+    const weight = parseFloat(APP_DATA.settings.startWeight) || 0;
+
+    document.getElementById('info-height').textContent = height;
+    document.getElementById('info-weight').textContent = weight;
+
+    if (height > 0 && weight > 0) {
+        const heightM = height / 100;
+        const bmi = (weight / (heightM * heightM)).toFixed(1);
+        
+        const bmiValueEl = document.getElementById('bmi-value');
+        const bmiCategoryEl = document.getElementById('bmi-category');
+        const bmiDescEl = document.getElementById('bmi-description');
+        const bmiRecsEl = document.getElementById('bmi-recommendations');
+
+        bmiValueEl.textContent = bmi;
+
+        let category = '';
+        let colorClass = '';
+        let description = '';
+        let recommendations = [];
+
+        if (bmi < 18.5) {
+            category = 'Underweight (Kurus)';
+            colorClass = 'text-blue-400';
+            description = `BMI Anda ${bmi} menunjukkan bahwa berat badan Anda di bawah normal. Tubuh Anda mungkin membutuhkan lebih banyak asupan nutrisi dan kalori untuk mencapai fungsi optimal.`;
+            recommendations = [
+                'Tingkatkan asupan kalori harian dengan makanan padat nutrisi (kacang-kacangan, alpukat, daging).',
+                'Lakukan latihan beban (hypertrophy) untuk membangun massa otot, bukan hanya lemak.',
+                'Makan lebih sering (5-6 kali sehari) dengan porsi sedang.',
+                'Konsultasikan dengan ahli gizi jika sulit menaikkan berat badan.'
+            ];
+        } else if (bmi >= 18.5 && bmi < 25) {
+            category = 'Normal (Ideal)';
+            colorClass = 'text-emerald-400';
+            description = `Selamat! BMI Anda ${bmi} berada dalam rentang ideal. Ini menunjukkan keseimbangan yang baik antara berat dan tinggi badan Anda.`;
+            recommendations = [
+                'Pertahankan pola makan seimbang dan rutin berolahraga.',
+                'Fokus pada peningkatan komposisi tubuh (menambah otot, menjaga kadar lemak).',
+                'Coba variasi latihan baru untuk menjaga motivasi.',
+                'Pastikan istirahat dan hidrasi cukup.'
+            ];
+        } else if (bmi >= 25 && bmi < 30) {
+            category = 'Overweight (Gemuk)';
+            colorClass = 'text-yellow-400';
+            description = `BMI Anda ${bmi} menunjukkan kelebihan berat badan. Ini bisa meningkatkan risiko masalah kesehatan jika tidak dikelola, namun perubahan gaya hidup kecil bisa sangat berdampak.`;
+            recommendations = [
+                'Buat defisit kalori moderat (kurangi 300-500 kkal dari kebutuhan harian).',
+                'Tingkatkan aktivitas kardio (jalan cepat, lari, berenang) minimal 150 menit/minggu.',
+                'Kurangi konsumsi gula tambahan dan makanan olahan.',
+                'Prioritaskan protein dalam setiap makan untuk rasa kenyang lebih lama.'
+            ];
+        } else {
+            category = 'Obesity (Obesitas)';
+            colorClass = 'text-red-400';
+            description = `BMI Anda ${bmi} masuk dalam kategori obesitas. Sangat disarankan untuk mengambil langkah aktif demi kesehatan jangka panjang jantung dan sendi Anda.`;
+            recommendations = [
+                'Konsultasikan dengan dokter sebelum memulai program latihan intens.',
+                'Mulai dengan aktivitas low-impact seperti jalan kaki atau berenang untuk melindungi sendi.',
+                'Fokus pada pola makan "whole foods" (makanan utuh) dan perbanyak sayuran.',
+                'Cari dukungan sosial atau bergabung dengan komunitas sehat.'
+            ];
+        }
+
+        bmiCategoryEl.textContent = category;
+        bmiCategoryEl.className = `inline-flex items-center px-3 py-1 rounded-full bg-zinc-800 text-xs font-medium ${colorClass}`;
+        bmiDescEl.textContent = description;
+
+        bmiRecsEl.innerHTML = recommendations.map(rec => `
+            <li class="flex gap-3 text-sm text-zinc-400">
+                <span class="iconify text-zinc-600 mt-0.5 flex-shrink-0" data-icon="lucide:arrow-right-circle" data-width="16"></span>
+                <span>${rec}</span>
+            </li>
+        `).join('');
+    }
 }
 
 function updateStats() {
     // Count workouts this week
     const now = new Date();
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
     
     const weeklyCount = APP_DATA.workouts.filter(w => {
         const wDate = new Date(w.date);
@@ -83,10 +208,208 @@ function updateStats() {
 
     const weeklyEl = document.getElementById('weekly-workouts');
     if (weeklyEl) weeklyEl.textContent = weeklyCount;
+
+    // Update Goals Widget
+    const targetWeight = APP_DATA.settings.targetWeight || 0;
+    const targetWorkouts = APP_DATA.settings.targetWorkouts || 0;
+    
+    // Determine current weight from logs
+    let currentWeight = APP_DATA.settings.startWeight || 0;
+    if (APP_DATA.weightLogs && APP_DATA.weightLogs.length > 0) {
+        currentWeight = APP_DATA.weightLogs[APP_DATA.weightLogs.length - 1].weight;
+    }
+
+    // Weight Goal
+    const weightGoalEl = document.getElementById('target-weight-display');
+    const currentWeightEl = document.getElementById('current-weight-goal');
+    const weightProgress = document.getElementById('weight-progress');
+
+    if (weightGoalEl && currentWeightEl && weightProgress) {
+        weightGoalEl.textContent = targetWeight || '--';
+        currentWeightEl.textContent = currentWeight;
+        
+        if (targetWeight > 0 && APP_DATA.weightLogs.length > 0) {
+            const startWeight = APP_DATA.weightLogs[0].weight;
+            const totalDiff = targetWeight - startWeight;
+            const currentDiff = currentWeight - startWeight;
+
+            // Avoid division by zero
+            if (Math.abs(totalDiff) < 0.1) {
+                weightProgress.style.width = '100%';
+            } else {
+                // Calculate percentage
+                let pct = (currentDiff / totalDiff) * 100;
+                
+                // Clamp between 0 and 100
+                pct = Math.max(0, Math.min(pct, 100));
+                
+                weightProgress.style.width = `${pct}%`;
+            }
+        } else {
+            weightProgress.style.width = '0%';
+        }
+    }
+
+    // Workout Goal
+    const workoutGoalEl = document.getElementById('target-workout-display');
+    const currentWorkoutEl = document.getElementById('current-workout-goal');
+    const workoutProgress = document.getElementById('workout-progress');
+
+    if (workoutGoalEl && currentWorkoutEl && workoutProgress) {
+        workoutGoalEl.textContent = targetWorkouts || '--';
+        currentWorkoutEl.textContent = weeklyCount;
+        
+        if (targetWorkouts > 0) {
+            const pct = Math.min((weeklyCount / targetWorkouts) * 100, 100);
+            workoutProgress.style.width = `${pct}%`;
+        } else {
+            workoutProgress.style.width = '0%';
+        }
+    }
+}
+
+// DASHBOARD GOAL EDITING
+function setupDashboardGoals() {
+    const editBtn = document.getElementById('edit-goals-btn');
+    const cancelBtn = document.getElementById('cancel-goals-btn');
+    const saveBtn = document.getElementById('save-goals-btn');
+    const displayDiv = document.getElementById('goals-display');
+    const editDiv = document.getElementById('goals-edit');
+
+    if (!editBtn || !displayDiv || !editDiv) return;
+
+    editBtn.addEventListener('click', () => {
+        displayDiv.classList.add('hidden');
+        editDiv.classList.remove('hidden');
+        
+        // Pre-fill
+        document.getElementById('edit-target-weight').value = APP_DATA.settings.targetWeight || '';
+        document.getElementById('edit-target-workouts').value = APP_DATA.settings.targetWorkouts || '';
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        editDiv.classList.add('hidden');
+        displayDiv.classList.remove('hidden');
+    });
+
+    saveBtn.addEventListener('click', () => {
+        const newWeight = document.getElementById('edit-target-weight').value;
+        const newWorkouts = document.getElementById('edit-target-workouts').value;
+
+        APP_DATA.settings.targetWeight = newWeight;
+        APP_DATA.settings.targetWorkouts = newWorkouts;
+        saveData();
+        
+        editDiv.classList.add('hidden');
+        displayDiv.classList.remove('hidden');
+        updateStats(); // Refresh UI
+    });
+}
+
+// DASHBOARD SLIDER
+function setupDashboardSlider() {
+    const dot1 = document.getElementById('slider-dot-1');
+    const dot2 = document.getElementById('slider-dot-2');
+    const prevBtn = document.getElementById('slider-prev');
+    const nextBtn = document.getElementById('slider-next');
+    const slide1 = document.getElementById('slide-1');
+    const slide2 = document.getElementById('slide-2');
+    const title = document.getElementById('slider-title');
+
+    let currentSlide = 1;
+
+    if (!dot1 || !dot2 || !slide1 || !slide2) return;
+
+    function showSlide(n) {
+        currentSlide = n;
+        if (n === 1) {
+            // Show Slide 1 (Chart)
+            slide1.classList.remove('-translate-x-full');
+            slide1.classList.add('translate-x-0');
+            
+            slide2.classList.remove('translate-x-0');
+            slide2.classList.add('translate-x-full');
+
+            // Update Dots
+            dot1.classList.remove('bg-zinc-700');
+            dot1.classList.add('bg-indigo-500');
+            dot2.classList.remove('bg-indigo-500');
+            dot2.classList.add('bg-zinc-700');
+
+            // Update Title
+            if (title) title.textContent = 'Riwayat Berat Badan';
+        } else {
+            // Show Slide 2 (Workouts)
+            slide1.classList.remove('translate-x-0');
+            slide1.classList.add('-translate-x-full');
+            
+            slide2.classList.remove('translate-x-full');
+            slide2.classList.add('translate-x-0');
+
+            // Update Dots
+            dot1.classList.remove('bg-indigo-500');
+            dot1.classList.add('bg-zinc-700');
+            dot2.classList.remove('bg-zinc-700');
+            dot2.classList.add('bg-indigo-500');
+
+            // Update Title
+            if (title) title.textContent = 'Riwayat Latihan';
+        }
+    }
+
+    dot1.addEventListener('click', () => showSlide(1));
+    dot2.addEventListener('click', () => showSlide(2));
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            const next = currentSlide === 1 ? 2 : 1;
+            showSlide(next);
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            const next = currentSlide === 1 ? 2 : 1;
+            showSlide(next);
+        });
+    }
 }
 
 // WORKOUT LOGIC
 function setupEventListeners() {
+    setupDashboardGoals();
+    setupDashboardSlider();
+
+    // Onboarding Form
+    const onboardingForm = document.getElementById('onboarding-form');
+    if (onboardingForm) {
+        onboardingForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('onboard-name').value;
+            const height = document.getElementById('onboard-height').value;
+            const weight = document.getElementById('onboard-weight').value;
+
+            if (name) APP_DATA.settings.username = name;
+            if (height) APP_DATA.settings.height = height;
+            if (weight) {
+                const wVal = parseFloat(weight);
+                APP_DATA.settings.startWeight = wVal;
+                // Add to log
+                APP_DATA.weightLogs.push({
+                    date: new Date().toISOString(),
+                    weight: wVal
+                });
+            }
+
+            saveData();
+            document.getElementById('onboarding-modal').classList.add('hidden');
+            
+            // Refresh UI to show new name/weight
+            updateUI();
+            alert(`Selamat datang, ${name}! Profil Anda telah disimpan.`);
+        });
+    }
+
     // Workout Form
     const workoutForm = document.getElementById('workout-form');
     if (workoutForm) {
@@ -109,9 +432,47 @@ function setupEventListeners() {
         });
     }
 
-    // Settings Save (Removed)
+    // Settings Save
+    const saveSettingsBtn = document.getElementById('save-settings');
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', () => {
+            const name = document.getElementById('settings-name').value;
+            const weight = document.getElementById('settings-weight').value;
+            const apiKey = document.getElementById('api-key').value;
 
-    // Clear Data (Removed)
+            if (name) APP_DATA.settings.username = name;
+            if (weight) {
+                const wVal = parseFloat(weight);
+                APP_DATA.settings.startWeight = wVal;
+                // Add to log
+                APP_DATA.weightLogs.push({
+                    date: new Date().toISOString(),
+                    weight: wVal
+                });
+            }
+            if (apiKey) APP_DATA.settings.apiKey = apiKey;
+
+            saveData();
+            alert('Pengaturan berhasil disimpan!');
+        });
+    }
+
+    // Export Data
+    const exportBtn = document.getElementById('export-data');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportData);
+    }
+
+    // Clear Data
+    const clearBtn = document.getElementById('clear-data');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if(confirm('Yakin ingin menghapus SEMUA data? Tindakan ini tidak bisa dibatalkan.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        });
+    }
 
     // Chat
     const sendBtn = document.getElementById('send-btn');
@@ -136,6 +497,43 @@ function setupEventListeners() {
     if (uploadBtn) {
         uploadBtn.addEventListener('click', handlePhotoUpload);
     }
+}
+
+function renderDashboardWorkouts() {
+    const container = document.getElementById('dashboard-recent-workouts');
+    if (!container) return;
+    
+    if (APP_DATA.workouts.length === 0) {
+        container.innerHTML = '<div class="text-xs text-zinc-500 text-center py-4">Belum ada aktivitas latihan</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    // Take top 5 recent workouts
+    const recent = APP_DATA.workouts.slice(0, 5);
+    
+    recent.forEach(w => {
+        const date = new Date(w.date);
+        const dateStr = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-3 rounded-xl bg-zinc-950/50 border border-zinc-800/50 hover:border-zinc-700 transition-colors';
+        div.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                    <span class="iconify" data-icon="lucide:dumbbell" data-width="16"></span>
+                </div>
+                <div>
+                    <div class="text-sm font-medium text-white">${w.name}</div>
+                    <div class="text-[10px] text-zinc-500">${dateStr}</div>
+                </div>
+            </div>
+            <div class="text-xs font-medium text-zinc-300">
+                ${w.weight} <span class="text-zinc-600">|</span> ${w.sets}
+            </div>
+        `;
+        container.appendChild(div);
+    });
 }
 
 function renderWorkoutHistory() {
@@ -667,14 +1065,14 @@ function initChart() {
     gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)'); // Indigo
     gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
 
-    // Mock data generation from workouts
+    // Use Weight Logs for Chart
     weightChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            labels: [], // Dynamic
             datasets: [{
-                label: 'Frekuensi Latihan',
-                data: [0, 0, 0, 0, 0, 0, 0], // Placeholder
+                label: 'Berat Badan (kg)',
+                data: [], // Dynamic
                 borderColor: '#6366f1', // Indigo 500
                 backgroundColor: gradient,
                 borderWidth: 2,
@@ -709,7 +1107,11 @@ function initChart() {
                     grid: { display: false, drawBorder: false },
                     ticks: { color: '#52525b', font: { family: 'Inter', size: 10 } }
                 },
-                y: { display: false }
+                y: { 
+                    display: true, // Show Y axis for weight
+                    grid: { color: '#27272a', drawBorder: false },
+                    ticks: { color: '#52525b', font: { family: 'Inter', size: 10 } }
+                }
             },
             interaction: { intersect: false, mode: 'index' },
         }
@@ -721,20 +1123,91 @@ function initChart() {
 function updateChart() {
     if (!weightChart) return;
 
-    const now = new Date();
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    const counts = [0, 0, 0, 0];
+    // Sort logs by date
+    const sortedLogs = [...APP_DATA.weightLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // Take last 7 entries or all if less
+    const recentLogs = sortedLogs.slice(-7);
+
+    const labels = recentLogs.map(log => new Date(log.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+    const data = recentLogs.map(log => log.weight);
+
+    weightChart.data.labels = labels;
+    weightChart.data.datasets[0].data = data;
+    weightChart.update();
+}
+
+function exportData() {
+    const rows = [
+        ['Date', 'Exercise', 'Weight', 'Sets', 'Notes']
+    ];
 
     APP_DATA.workouts.forEach(w => {
-        const wDate = new Date(w.date);
-        const diffTime = Math.abs(now - wDate);
-        const diffWeeks = Math.floor(diffTime / oneWeek);
+        rows.push([
+            new Date(w.date).toLocaleDateString(),
+            w.name,
+            w.weight,
+            w.sets,
+            w.notes
+        ]);
+    });
+
+    let csvContent = "data:text/csv;charset=utf-8," 
+        + rows.map(e => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "fittrack_workouts.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function updatePRs() {
+    const container = document.getElementById('pr-list');
+    if (!container) return;
+
+    const prs = {};
+
+    APP_DATA.workouts.forEach(w => {
+        if (!w.weight) return;
+        const name = w.name.trim();
+        const key = name.toLowerCase();
         
-        if (diffWeeks < 4) {
-            counts[3 - diffWeeks]++; // 3 is current week, 0 is 4 weeks ago
+        // Parse weight: remove non-numeric chars except dot/comma
+        let weightVal = parseFloat(w.weight.toString().replace(/[^\d.,]/g, '').replace(',', '.'));
+        
+        if (isNaN(weightVal)) return;
+
+        if (!prs[key] || weightVal > prs[key].weight) {
+            prs[key] = {
+                name: name,
+                weight: weightVal,
+                unit: w.weight.toString().replace(/[\d.,\s]/g, '') || 'kg',
+                date: w.date
+            };
         }
     });
 
-    weightChart.data.datasets[0].data = counts;
-    weightChart.update();
+    const sortedPRs = Object.values(prs).sort((a, b) => b.weight - a.weight).slice(0, 5);
+
+    if (sortedPRs.length === 0) {
+        container.innerHTML = '<div class="text-xs text-zinc-500 text-center py-2">Belum ada rekor tercatat</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    sortedPRs.forEach(pr => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-3 rounded-xl bg-zinc-950/50 border border-zinc-800/50';
+        div.innerHTML = `
+            <div>
+                <div class="text-xs font-medium text-white">${pr.name}</div>
+                <div class="text-[10px] text-zinc-500">${new Date(pr.date).toLocaleDateString()}</div>
+            </div>
+            <div class="text-sm font-bold text-indigo-400">${pr.weight} <span class="text-xs font-normal text-zinc-500">${pr.unit || 'kg'}</span></div>
+        `;
+        container.appendChild(div);
+    });
 }

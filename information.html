@@ -2,14 +2,14 @@
 <html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="referrer" content="no-referrer-when-downgrade">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitTrack - Cal-Culator</title>
+    <title>FitTrack - Informasi Kesehatan</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
-    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #09090b; }
@@ -22,27 +22,6 @@
         .card-3d {
             transform-style: preserve-3d;
             transform: perspective(1000px);
-        }
-        .btn-3d {
-            transition: all 0.1s;
-            box-shadow: 0px 4px 0px 0px rgba(0,0,0,0.5);
-            transform: translateY(0);
-        }
-        .btn-3d:active {
-            transform: translateY(4px);
-            box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.5);
-        }
-        .btn-3d-light {
-            box-shadow: 0px 4px 0px 0px #d4d4d8; /* zinc-300 */
-        }
-        .btn-3d-light:active {
-            box-shadow: 0px 0px 0px 0px #d4d4d8;
-        }
-        .btn-3d-dark {
-            box-shadow: 0px 4px 0px 0px #27272a; /* zinc-800 */
-        }
-        .btn-3d-dark:active {
-            box-shadow: 0px 0px 0px 0px #27272a;
         }
     </style>
 </head>
@@ -69,7 +48,7 @@
                 <span class="iconify" data-icon="lucide:dumbbell" data-width="20"></span>
                 Workout Log
             </a>
-            <a href="calculator.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-zinc-900 text-white shadow-inner border border-zinc-800/50">
+            <a href="calculator.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition-colors">
                 <span class="iconify" data-icon="lucide:calculator" data-width="20"></span>
                 Cal-Culator
             </a>
@@ -102,7 +81,7 @@
         
         <!-- Desktop Header -->
         <header class="hidden md:flex items-center justify-between px-8 py-6 border-b border-zinc-900 bg-zinc-950/50 backdrop-blur-xl sticky top-0 z-40">
-            <h2 class="text-xl font-semibold text-white">Calorie Calculator</h2>
+            <h2 class="text-xl font-semibold text-white">Informasi Kesehatan</h2>
             <div class="flex items-center gap-3">
                 <button onclick="window.location.href='information.html'" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Information">
                     <span class="iconify" data-icon="lucide:info" data-width="18"></span>
@@ -129,54 +108,63 @@
             </div>
         </header>
 
-        <main class="px-6 md:px-8 py-6 space-y-6 pb-32 md:pb-8 max-w-7xl mx-auto w-full h-full flex flex-col">
-            <section id="calculator-ai" class="flex-1 flex flex-col max-w-4xl mx-auto w-full h-full">
-                <div class="flex items-center justify-between mb-4 md:hidden">
-                    <h2 class="text-lg font-medium text-white">Hitung Kalori</h2>
-                    <span class="iconify text-indigo-500" data-icon="lucide:calculator" data-width="20"></span>
-                </div>
-
-                <!-- Chat Container -->
-                <div class="flex flex-col h-[65vh] md:h-[75vh] bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm rounded-3xl overflow-hidden shadow-inner card-3d" data-tilt data-tilt-max="2" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.05">
-                    
-                    <!-- Messages -->
-                    <div id="calc-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 no-scrollbar">
-                        <!-- Initial Bot Message -->
-                        <div class="message bot-message flex gap-3">
-                            <div class="w-8 h-8 rounded-full bg-green-600/20 flex items-center justify-center flex-shrink-0 border border-green-500/30">
-                                <span class="iconify text-green-400" data-icon="lucide:chef-hat" data-width="16"></span>
+        <main class="px-6 md:px-8 py-6 space-y-6 pb-32 md:pb-8 max-w-7xl mx-auto w-full">
+            
+            <!-- BMI Status Card -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1">
+                    <div class="p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm card-3d h-full flex flex-col justify-center items-center text-center" data-tilt data-tilt-max="3" data-tilt-speed="400">
+                        <div class="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center mb-4 relative">
+                            <span class="iconify text-indigo-500" data-icon="lucide:activity" data-width="40"></span>
+                            <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+                        </div>
+                        <h3 class="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-1">Indeks Massa Tubuh (BMI)</h3>
+                        <div class="text-4xl font-bold text-white mb-2" id="bmi-value">--</div>
+                        <div class="inline-flex items-center px-3 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-medium" id="bmi-category">
+                            Menghitung...
+                        </div>
+                        <div class="mt-6 grid grid-cols-2 gap-8 w-full border-t border-zinc-800 pt-6">
+                            <div>
+                                <div class="text-xs text-zinc-500 mb-1">Tinggi Badan</div>
+                                <div class="text-lg font-semibold text-white"><span id="info-height">--</span> cm</div>
                             </div>
-                            <div class="bg-zinc-800/50 border border-zinc-700/50 text-zinc-200 text-sm px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[85%] leading-relaxed">
-                                Halo! Ceritakan apa yang kamu makan hari ini, saya akan hitung kalorinya untukmu. <br><br>Contoh: "Sarapan nasi uduk pake telor dadar dan kerupuk"
+                            <div>
+                                <div class="text-xs text-zinc-500 mb-1">Berat Badan</div>
+                                <div class="text-lg font-semibold text-white"><span id="info-weight">--</span> kg</div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Input Area -->
-                    <div class="p-3 md:p-4 bg-zinc-950/80 border-t border-zinc-800/50 backdrop-blur-md flex gap-2 items-center">
-                        <input type="text" id="food-input" placeholder="Makan apa hari ini?" 
-                            class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors placeholder-zinc-600 text-white">
-                        <button id="send-food-btn" class="w-12 h-12 bg-green-600 hover:bg-green-500 text-white rounded-xl flex items-center justify-center transition-colors shadow-lg shadow-green-600/20">
-                            <span class="iconify" data-icon="lucide:send" data-width="20"></span>
-                        </button>
+                <!-- Explanation & Advice -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Condition Explanation -->
+                    <div class="p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm card-3d" data-tilt data-tilt-max="2">
+                        <h3 class="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                            <span class="iconify text-indigo-500" data-icon="lucide:info" data-width="20"></span>
+                            Kondisi Anda Saat Ini
+                        </h3>
+                        <p class="text-zinc-400 text-sm leading-relaxed" id="bmi-description">
+                            Silakan lengkapi data tinggi dan berat badan Anda untuk melihat analisis kondisi kesehatan Anda.
+                        </p>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm card-3d" data-tilt data-tilt-max="2">
+                        <h3 class="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                            <span class="iconify text-emerald-500" data-icon="lucide:check-circle-2" data-width="20"></span>
+                            Langkah Terbaik Untuk Anda
+                        </h3>
+                        <ul class="space-y-4" id="bmi-recommendations">
+                            <li class="flex gap-3 text-sm text-zinc-400">
+                                <span class="iconify text-zinc-600 mt-0.5 flex-shrink-0" data-icon="lucide:arrow-right-circle" data-width="16"></span>
+                                <span>Belum ada rekomendasi.</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
+            </section>
 
-                <div class="api-notice text-center mt-3">
-                    <small class="text-xs text-zinc-600 flex items-center justify-center gap-1">
-                        <span class="iconify" data-icon="lucide:info" data-width="12"></span>
-                        AI powered by Google Gemini
-                    </small>
-                </div>
-            </section>
-            
-            <!-- Meal History List (Simple) -->
-            <section id="meal-history-section" class="max-w-4xl mx-auto w-full">
-                <h3 class="text-sm font-medium text-zinc-400 mb-3">Riwayat Makan Hari Ini</h3>
-                <div id="meal-history" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <!-- Meals injected here -->
-                </div>
-            </section>
         </main>
     </div>
 
@@ -191,12 +179,8 @@
         <button class="nav-item group -mt-8 flex flex-col items-center justify-center w-14 h-14 bg-indigo-600 rounded-full text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-colors border-4 border-zinc-950" onclick="window.location.href='ai.html'">
             <span class="iconify" data-icon="lucide:sparkles" data-width="22"></span>
         </button>
-        <button class="nav-item group flex flex-col items-center justify-center w-12 h-12 text-white" onclick="window.location.href='calculator.html'">
-            <span class="iconify group-hover:scale-110 transition-transform" data-icon="lucide:calculator" data-width="20" data-stroke-width="2"></span>
-            <span class="w-1 h-1 rounded-full bg-white mt-1"></span>
-        </button>
-        <button class="nav-item group flex flex-col items-center justify-center w-12 h-12 text-zinc-500 hover:text-zinc-300 transition-colors" onclick="window.location.href='gallery.html'">
-            <span class="iconify group-hover:scale-110 transition-transform" data-icon="lucide:image" data-width="20"></span>
+        <button class="nav-item group flex flex-col items-center justify-center w-12 h-12 text-zinc-500 hover:text-zinc-300 transition-colors" onclick="window.location.href='calculator.html'">
+            <span class="iconify group-hover:scale-110 transition-transform" data-icon="lucide:calculator" data-width="20"></span>
         </button>
 
     </nav>

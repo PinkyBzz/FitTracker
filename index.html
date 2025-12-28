@@ -103,7 +103,12 @@
         <header class="hidden md:flex items-center justify-between px-8 py-6 border-b border-zinc-900 bg-zinc-950/50 backdrop-blur-xl sticky top-0 z-40">
             <h2 class="text-xl font-semibold text-white">Dashboard Overview</h2>
             <div class="flex items-center gap-4">
-                <!-- Bell button removed -->
+                <button onclick="window.location.href='information.html'" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Information">
+                    <span class="iconify" data-icon="lucide:info" data-width="18"></span>
+                </button>
+                <button onclick="window.location.href='settings.html'" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Settings">
+                    <span class="iconify" data-icon="lucide:settings" data-width="18"></span>
+                </button>
             </div>
         </header>
 
@@ -112,6 +117,14 @@
             <div>
                 <h1 class="text-xl font-medium tracking-tighter text-white">FitTrack</h1>
                 <div id="user-greeting" class="text-sm text-zinc-500 font-medium mt-1">Halo, User!</div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="window.location.href='information.html'" class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 text-zinc-400 hover:bg-zinc-800 transition-colors">
+                     <span class="iconify" data-icon="lucide:info" data-width="14"></span>
+                </button>
+                <button onclick="window.location.href='settings.html'" class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 text-zinc-400 hover:bg-zinc-800 transition-colors">
+                     <span class="iconify" data-icon="lucide:settings" data-width="14"></span>
+                </button>
             </div>
         </header>
 
@@ -143,6 +156,60 @@
                         </div>
                     </div>
 
+                    <!-- Goals Card -->
+                    <div class="p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm card-3d" data-tilt data-tilt-max="5" data-tilt-speed="400">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-medium text-zinc-400">Target Saya</h3>
+                            <div class="flex gap-2">
+                                <button id="edit-goals-btn" class="text-zinc-500 hover:text-indigo-400 transition-colors">
+                                    <span class="iconify" data-icon="lucide:edit-2" data-width="14"></span>
+                                </button>
+                                <span class="iconify text-indigo-500" data-icon="lucide:target" data-width="16"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Display Mode -->
+                        <div id="goals-display" class="space-y-4">
+                            <!-- Weight Goal -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-zinc-500">Berat Badan</span>
+                                    <span class="text-white font-medium"><span id="current-weight-goal">0</span> / <span id="target-weight-display">--</span> kg</span>
+                                </div>
+                                <div class="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                                    <div id="weight-progress" class="h-full bg-indigo-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Workout Goal -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-zinc-500">Workout Minggu Ini</span>
+                                    <span class="text-white font-medium"><span id="current-workout-goal">0</span> / <span id="target-workout-display">--</span></span>
+                                </div>
+                                <div class="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                                    <div id="workout-progress" class="h-full bg-emerald-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Edit Mode (Hidden by default) -->
+                        <div id="goals-edit" class="hidden space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-medium text-zinc-500 mb-1 uppercase">Target Berat (kg)</label>
+                                <input type="number" id="edit-target-weight" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-medium text-zinc-500 mb-1 uppercase">Target Workout/Minggu</label>
+                                <input type="number" id="edit-target-workouts" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                            </div>
+                            <div class="flex gap-2 pt-1">
+                                <button id="cancel-goals-btn" class="flex-1 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 text-xs hover:bg-zinc-800 transition-colors">Batal</button>
+                                <button id="save-goals-btn" class="flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-xs hover:bg-indigo-500 transition-colors">Simpan</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Quick Actions -->
                     <div class="grid grid-cols-2 gap-4">
                         <button onclick="window.location.href='workout.html'" class="group relative overflow-hidden p-4 h-24 rounded-2xl bg-zinc-100 text-zinc-950 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300 border border-transparent hover:border-zinc-200/20 btn-3d btn-3d-light">
@@ -163,17 +230,42 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Chart -->
-                <div class="lg:col-span-2 p-1 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm overflow-hidden relative flex flex-col min-h-[300px] card-3d" data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.1">
-                    <div class="px-5 pt-5 flex justify-between items-center mb-2">
-                         <h3 class="text-sm font-medium text-zinc-400">Statistik Berat</h3>
+                <!-- Right Column: Slider Card -->
+                <div class="lg:col-span-2 p-1 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm overflow-hidden relative flex flex-col min-h-[350px] card-3d group" data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.1">
+                    <div class="px-5 pt-5 flex justify-between items-center mb-2 z-10 relative">
+                         <h3 id="slider-title" class="text-sm font-medium text-zinc-400 transition-all duration-300">Riwayat Berat Badan</h3>
                          <div class="flex gap-2">
-                             <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                             <span class="w-2 h-2 rounded-full bg-zinc-700"></span>
+                             <button id="slider-dot-1" class="w-2 h-2 rounded-full bg-indigo-500 transition-all duration-300 hover:scale-125"></button>
+                             <button id="slider-dot-2" class="w-2 h-2 rounded-full bg-zinc-700 transition-all duration-300 hover:scale-125 hover:bg-zinc-600"></button>
                          </div>
                     </div>
-                    <div class="flex-1 w-full p-4">
-                        <canvas id="weightChart"></canvas>
+                    
+                    <!-- Navigation Arrows -->
+                    <button id="slider-prev" class="absolute left-2 top-1/2 transform -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-zinc-950/80 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 backdrop-blur-sm flex items-center justify-center transition-all shadow-lg">
+                        <span class="iconify" data-icon="lucide:chevron-left" data-width="18"></span>
+                    </button>
+                    <button id="slider-next" class="absolute right-2 top-1/2 transform -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-zinc-950/80 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 backdrop-blur-sm flex items-center justify-center transition-all shadow-lg">
+                        <span class="iconify" data-icon="lucide:chevron-right" data-width="18"></span>
+                    </button>
+
+                    <div class="relative flex-1 w-full overflow-hidden">
+                        <!-- Slide 1: Chart -->
+                        <div id="slide-1" class="absolute inset-0 p-4 transition-transform duration-500 ease-in-out translate-x-0 flex flex-col">
+                            <canvas id="weightChart" class="flex-1 w-full h-full"></canvas>
+                        </div>
+                        
+                        <!-- Slide 2: Workouts -->
+                        <div id="slide-2" class="absolute inset-0 p-4 transition-transform duration-500 ease-in-out translate-x-full flex flex-col">
+                             <div id="dashboard-recent-workouts" class="space-y-3 overflow-y-auto no-scrollbar flex-1 pr-1">
+                                <!-- Content injected by JS -->
+                             </div>
+                             <div class="mt-3 pt-3 border-t border-zinc-800/50 text-center">
+                                <button onclick="window.location.href='workout.html'" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors flex items-center justify-center gap-1 mx-auto">
+                                    Lihat Semua Riwayat
+                                    <span class="iconify" data-icon="lucide:arrow-right" data-width="12"></span>
+                                </button>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
@@ -200,6 +292,46 @@
             <span class="iconify group-hover:scale-110 transition-transform" data-icon="lucide:image" data-width="20"></span>
         </button>
     </nav>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-500">
+                    <span class="iconify" data-icon="lucide:user-plus" data-width="32"></span>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Selamat Datang!</h2>
+                <p class="text-zinc-400 text-sm">Mari lengkapi profil Anda untuk memulai perjalanan kebugaran yang lebih baik.</p>
+            </div>
+
+            <form id="onboarding-form" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-1.5 uppercase tracking-wide">Nama Panggilan</label>
+                    <input type="text" id="onboard-name" required placeholder="Nama Anda" 
+                        class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-zinc-600 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-500 mb-1.5 uppercase tracking-wide">Tinggi (cm)</label>
+                        <input type="number" id="onboard-height" required placeholder="170" 
+                            class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-zinc-600 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-500 mb-1.5 uppercase tracking-wide">Berat (kg)</label>
+                        <input type="number" id="onboard-weight" required placeholder="65" 
+                            class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-zinc-600 text-white">
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 mt-2">
+                    Mulai Sekarang
+                    <span class="iconify" data-icon="lucide:arrow-right" data-width="18"></span>
+                </button>
+            </form>
+        </div>
+    </div>
 
     <script src="js/app.js"></script>
     <script src="js/background-3d.js"></script>

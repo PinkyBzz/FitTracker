@@ -107,8 +107,13 @@
         <!-- Desktop Header -->
         <header class="hidden md:flex items-center justify-between px-8 py-6 border-b border-zinc-900 bg-zinc-950/50 backdrop-blur-xl sticky top-0 z-40">
             <h2 class="text-xl font-semibold text-white">Progress Gallery</h2>
-            <div class="flex items-center gap-4">
-                <!-- Bell button removed -->
+            <div class="flex items-center gap-3">
+                <button onclick="window.location.href='information.html'" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Information">
+                    <span class="iconify" data-icon="lucide:info" data-width="18"></span>
+                </button>
+                <button onclick="window.location.href='settings.html'" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Settings">
+                    <span class="iconify" data-icon="lucide:settings" data-width="18"></span>
+                </button>
             </div>
         </header>
 
@@ -117,6 +122,14 @@
             <div>
                 <h1 class="text-xl font-medium tracking-tighter text-white">FitTrack</h1>
                 <div id="user-greeting" class="text-sm text-zinc-500 font-medium mt-1">Halo, User!</div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="window.location.href='information.html'" class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 text-zinc-400 hover:bg-zinc-800 transition-colors">
+                     <span class="iconify" data-icon="lucide:info" data-width="14"></span>
+                </button>
+                <button onclick="window.location.href='settings.html'" class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 text-zinc-400 hover:bg-zinc-800 transition-colors">
+                     <span class="iconify" data-icon="lucide:settings" data-width="14"></span>
+                </button>
             </div>
         </header>
 
@@ -182,6 +195,7 @@
             <span class="iconify group-hover:scale-110 transition-transform" data-icon="lucide:image" data-width="20" data-stroke-width="2"></span>
             <span class="w-1 h-1 rounded-full bg-white mt-1"></span>
         </button>
+
     </nav>
 
     <script src="js/app.js"></script>
