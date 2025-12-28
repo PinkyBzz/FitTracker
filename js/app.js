@@ -26,7 +26,14 @@ function loadAllData() {
 
     if (savedWorkouts) APP_DATA.workouts = JSON.parse(savedWorkouts);
     if (savedPhotos) APP_DATA.photos = JSON.parse(savedPhotos);
-    if (savedSettings) APP_DATA.settings = JSON.parse(savedSettings);
+    if (savedSettings) {
+        APP_DATA.settings = JSON.parse(savedSettings);
+        // Auto-fix: Replace old expired key if found in storage
+        if (APP_DATA.settings.apiKey === 'AIzaSyA7LQ-dJGNBUUTzkuzlgd-fYhoJu-K-Iho') {
+            APP_DATA.settings.apiKey = DEFAULT_API_KEY;
+            saveData();
+        }
+    }
 }
 
 function saveData() {
