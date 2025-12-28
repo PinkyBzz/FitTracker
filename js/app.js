@@ -1,5 +1,5 @@
 // STATE MANAGEMENT
-const DEFAULT_API_KEY = 'AIzaSyA7LQ-dJGNBUUTzkuzlgd-fYhoJu-K-Iho';
+const DEFAULT_API_KEY = 'AIzaSyDdRrOAg3rOuca7EAuoD1Fzfpe1E8HMpB8';
 
 const APP_DATA = {
     workouts: [],
