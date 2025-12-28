@@ -52,7 +52,7 @@ function updateUI() {
 
     // Settings Specific
     if (document.getElementById('api-key')) {
-        // document.getElementById('api-key').value = APP_DATA.settings.apiKey; // Removed
+        document.getElementById('api-key').value = APP_DATA.settings.apiKey || '';
         document.getElementById('settings-name').value = APP_DATA.settings.username;
         document.getElementById('settings-weight').value = APP_DATA.settings.startWeight;
     }
@@ -104,7 +104,9 @@ function setupEventListeners() {
     const saveSettingsBtn = document.getElementById('save-settings');
     if (saveSettingsBtn) {
         saveSettingsBtn.addEventListener('click', () => {
-            // APP_DATA.settings.apiKey = document.getElementById('api-key').value; // Removed
+            const newKey = document.getElementById('api-key').value.trim();
+            if (newKey) APP_DATA.settings.apiKey = newKey;
+            
             APP_DATA.settings.username = document.getElementById('settings-name').value;
             APP_DATA.settings.startWeight = document.getElementById('settings-weight').value;
             saveData();
@@ -181,8 +183,8 @@ async function sendMessage() {
     try {
         responseText = await callAIAPI(text);
     } catch (error) {
-        responseText = "Error: Gagal menghubungi AI. Cek koneksi internet.";
         console.error(error);
+        responseText = `Error: ${error.message || "Gagal menghubungi AI."}`;
     }
 
     // Remove loading and show response
