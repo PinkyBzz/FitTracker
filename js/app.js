@@ -415,12 +415,16 @@ function setupEventListeners() {
     if (workoutForm) {
         workoutForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            const sets = document.getElementById('exercise-sets').value;
+            const reps = document.getElementById('exercise-reps').value;
+            
             const newWorkout = {
                 id: Date.now(),
                 date: new Date().toISOString(),
                 name: document.getElementById('exercise-name').value,
                 weight: document.getElementById('exercise-weight').value,
-                sets: document.getElementById('exercise-sets').value,
+                sets: sets,
+                reps: reps,
                 notes: document.getElementById('exercise-notes').value
             };
             
@@ -544,7 +548,7 @@ function renderDashboardWorkouts() {
                 </div>
             </div>
             <div class="text-xs font-medium text-zinc-300">
-                ${w.weight} <span class="text-zinc-600">|</span> ${w.sets}
+                ${w.weight}kg <span class="text-zinc-600">|</span> ${w.reps ? `${w.sets} x ${w.reps}` : w.sets}
             </div>
         `;
         container.appendChild(div);
@@ -595,7 +599,7 @@ function renderWorkoutHistory(filterDate = null) {
             <div class="flex justify-between items-start mb-1">
                 <h3 class="text-sm font-medium text-white">${w.name}</h3>
                 <div class="text-xs font-medium text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded-md border border-indigo-500/20">
-                    ${w.weight} <span class="text-zinc-500 mx-1">|</span> ${w.sets}
+                    ${w.weight}kg <span class="text-zinc-500 mx-1">|</span> ${w.reps ? `${w.sets} Sets x ${w.reps} Reps` : w.sets}
                 </div>
             </div>
             <div class="text-xs text-zinc-400 italic">"${w.notes}"</div>
@@ -673,9 +677,14 @@ function renderMealHistory(filterDate = null) {
     meals.forEach(m => {
         const date = new Date(m.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
         const div = document.createElement('div');
-        div.className = 'p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm';
+        div.className = 'p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm group relative';
         div.innerHTML = `
-            <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-medium">${date}</div>
+            <div class="flex justify-between items-start">
+                <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-medium">${date}</div>
+                <button onclick="deleteMeal(${m.id})" class="text-zinc-600 hover:text-red-500 transition-colors p-1 -mr-2 -mt-2 opacity-0 group-hover:opacity-100">
+                    <span class="iconify" data-icon="lucide:trash-2" data-width="14"></span>
+                </button>
+            </div>
             <div class="flex justify-between items-start mb-1">
                 <h3 class="text-sm font-medium text-white">${m.food}</h3>
                 <div class="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-md border border-green-500/20">
@@ -696,6 +705,13 @@ function renderMealHistory(filterDate = null) {
         `;
         container.appendChild(div);
     });
+}
+
+window.deleteMeal = function(id) {
+    if(!confirm('Hapus log makanan ini?')) return;
+    APP_DATA.meals = APP_DATA.meals.filter(m => m.id !== id);
+    saveData();
+    renderMealHistory();
 }
 
 // AI CHAT LOGIC
