@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #09090b; }
@@ -14,9 +17,37 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 3D Effects */
+        .card-3d {
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0px 4px 0px 0px rgba(0,0,0,0.5);
+            transform: translateY(0);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.5);
+        }
+        .btn-3d-light {
+            box-shadow: 0px 4px 0px 0px #d4d4d8; /* zinc-300 */
+        }
+        .btn-3d-light:active {
+            box-shadow: 0px 0px 0px 0px #d4d4d8;
+        }
+        .btn-3d-dark {
+            box-shadow: 0px 4px 0px 0px #27272a; /* zinc-800 */
+        }
+        .btn-3d-dark:active {
+            box-shadow: 0px 0px 0px 0px #27272a;
+        }
     </style>
 </head>
 <body class="text-zinc-200 antialiased selection:bg-zinc-700 selection:text-white fade-in">
+    <div id="vanta-bg" class="fixed inset-0 -z-10"></div>
 
     <!-- Sidebar (Desktop) -->
     <aside class="hidden md:flex fixed top-0 left-0 h-screen w-64 bg-zinc-950 border-r border-zinc-900 flex-col z-50">
@@ -96,7 +127,7 @@
                 
                 <!-- Left Column -->
                 <div class="lg:col-span-1 space-y-6">
-                    <div class="p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm">
+                    <div class="p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm card-3d" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-sm font-medium text-zinc-400">Progress Minggu Ini</h3>
                             <span class="iconify text-zinc-600" data-icon="lucide:trending-up" data-width="16"></span>
@@ -119,7 +150,7 @@
 
                     <!-- Quick Actions -->
                     <div class="grid grid-cols-2 gap-4">
-                        <button onclick="window.location.href='workout.html'" class="group relative overflow-hidden p-4 h-24 rounded-2xl bg-zinc-100 text-zinc-950 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300 border border-transparent hover:border-zinc-200/20">
+                        <button onclick="window.location.href='workout.html'" class="group relative overflow-hidden p-4 h-24 rounded-2xl bg-zinc-100 text-zinc-950 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300 border border-transparent hover:border-zinc-200/20 btn-3d btn-3d-light">
                             <div class="flex justify-between items-start w-full">
                                 <span class="iconify" data-icon="lucide:dumbbell" data-width="20"></span>
                                 <span class="iconify opacity-0 group-hover:opacity-100 transition-opacity -rotate-45" data-icon="lucide:arrow-right" data-width="16"></span>
@@ -127,7 +158,7 @@
                             <span class="font-medium text-sm tracking-tight text-left">Catat<br>Latihan</span>
                         </button>
 
-                        <button onclick="window.location.href='ai.html'" class="group relative overflow-hidden p-4 h-24 rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-300 flex flex-col justify-between hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:border-zinc-700">
+                        <button onclick="window.location.href='ai.html'" class="group relative overflow-hidden p-4 h-24 rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-300 flex flex-col justify-between hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:border-zinc-700 btn-3d btn-3d-dark">
                              <div class="flex justify-between items-start w-full">
                                 <span class="iconify" data-icon="lucide:bot" data-width="20"></span>
                                 <span class="iconify opacity-0 group-hover:opacity-100 transition-opacity -rotate-45" data-icon="lucide:sparkles" data-width="16"></span>
@@ -138,7 +169,7 @@
                 </div>
 
                 <!-- Right Column: Chart -->
-                <div class="lg:col-span-2 p-1 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm overflow-hidden relative flex flex-col min-h-[300px]">
+                <div class="lg:col-span-2 p-1 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm overflow-hidden relative flex flex-col min-h-[300px] card-3d" data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.1">
                     <div class="px-5 pt-5 flex justify-between items-center mb-2">
                          <h3 class="text-sm font-medium text-zinc-400">Statistik Berat</h3>
                          <div class="flex gap-2">
@@ -176,5 +207,6 @@
     </nav>
 
     <script src="js/app.js"></script>
+    <script src="js/background-3d.js"></script>
 </body>
 </html>

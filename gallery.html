@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FitTrack - Gallery</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -18,9 +21,37 @@
         .fade-in {
             animation: fadeIn 0.3s ease-in-out forwards;
         }
+        
+        /* 3D Effects */
+        .card-3d {
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0px 4px 0px 0px rgba(0,0,0,0.5);
+            transform: translateY(0);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.5);
+        }
+        .btn-3d-light {
+            box-shadow: 0px 4px 0px 0px #d4d4d8; /* zinc-300 */
+        }
+        .btn-3d-light:active {
+            box-shadow: 0px 0px 0px 0px #d4d4d8;
+        }
+        .btn-3d-dark {
+            box-shadow: 0px 4px 0px 0px #27272a; /* zinc-800 */
+        }
+        .btn-3d-dark:active {
+            box-shadow: 0px 0px 0px 0px #27272a;
+        }
     </style>
 </head>
 <body class="text-zinc-200 antialiased selection:bg-zinc-700 selection:text-white fade-in">
+    <div id="vanta-bg" class="fixed inset-0 -z-10"></div>
 
     <!-- Sidebar (Desktop) -->
     <aside class="hidden md:flex fixed top-0 left-0 h-screen w-64 bg-zinc-950 border-r border-zinc-900 flex-col z-50">
@@ -102,7 +133,7 @@
                 </div>
 
                 <!-- Upload Card -->
-                <div class="lg:col-span-1 p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm h-fit text-center sticky top-24">
+                <div class="lg:col-span-1 p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm h-fit text-center sticky top-24 card-3d" data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.1">
                     <div class="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center mx-auto mb-4 border border-zinc-700/50">
                         <span class="iconify text-zinc-400" data-icon="lucide:camera" data-width="24"></span>
                     </div>
@@ -121,7 +152,7 @@
                         "/>
                     </label>
 
-                    <button id="upload-btn" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2.5 rounded-xl transition-colors border border-zinc-700 flex items-center justify-center gap-2">
+                    <button id="upload-btn" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2.5 rounded-xl transition-colors border border-zinc-700 flex items-center justify-center gap-2 btn-3d btn-3d-dark">
                         <span class="iconify" data-icon="lucide:upload-cloud" data-width="16"></span>
                         Simpan Foto
                     </button>
@@ -159,5 +190,6 @@
     </nav>
 
     <script src="js/app.js"></script>
+    <script src="js/background-3d.js"></script>
 </body>
 </html>
