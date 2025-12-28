@@ -1,9 +1,11 @@
 // STATE MANAGEMENT
+const DEFAULT_API_KEY = 'AIzaSyA7LQ-dJGNBUUTzkuzlgd-fYhoJu-K-Iho';
+
 const APP_DATA = {
     workouts: [],
     photos: [],
     settings: {
-        apiKey: '',
+        apiKey: DEFAULT_API_KEY,
         username: 'Pejuang Otot',
         startWeight: 0
     }
@@ -34,49 +36,30 @@ function saveData() {
     updateUI();
 }
 
-// NAVIGATION
-function navTo(sectionId) {
-    // Hide all sections
-    document.querySelectorAll('main section').forEach(sec => {
-        sec.classList.remove('active-section');
-        sec.classList.add('hidden-section');
-    });
-
-    // Show target section
-    const target = document.getElementById(sectionId);
-    target.classList.remove('hidden-section');
-    target.classList.add('active-section');
-
-    // Update Nav Icons
-    document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    // Find the button that calls this function (simple heuristic)
-    const navBtn = document.querySelector(`button[onclick="navTo('${sectionId}')"]`);
-    if (navBtn) navBtn.classList.add('active');
-
-    // Refresh specific UI elements if needed
-    if (sectionId === 'dashboard') {
-        updateStats();
-        updateChart();
-    }
-}
-
 // UI UPDATES
 function updateUI() {
-    // Dashboard
-    document.getElementById('user-greeting').textContent = `Halo, ${APP_DATA.settings.username}!`;
-    document.getElementById('current-weight').textContent = APP_DATA.settings.startWeight + ' kg'; // Simplification: using start weight for now
+    // Common Header
+    const greeting = document.getElementById('user-greeting');
+    if (greeting) greeting.textContent = `Halo, ${APP_DATA.settings.username}!`;
+
+    // Dashboard Specific
+    const weightDisplay = document.getElementById('current-weight');
+    if (weightDisplay) weightDisplay.textContent = APP_DATA.settings.startWeight + ' kg';
     
-    // Settings Inputs
-    document.getElementById('api-key').value = APP_DATA.settings.apiKey;
-    document.getElementById('settings-name').value = APP_DATA.settings.username;
-    document.getElementById('settings-weight').value = APP_DATA.settings.startWeight;
+    if (document.getElementById('weekly-workouts')) {
+        updateStats();
+    }
+
+    // Settings Specific
+    if (document.getElementById('api-key')) {
+        // document.getElementById('api-key').value = APP_DATA.settings.apiKey; // Removed
+        document.getElementById('settings-name').value = APP_DATA.settings.username;
+        document.getElementById('settings-weight').value = APP_DATA.settings.startWeight;
+    }
 
     // Lists
-    renderWorkoutHistory();
-    renderPhotos();
-    updateStats();
+    if (document.getElementById('workout-history')) renderWorkoutHistory();
+    if (document.getElementById('photo-grid')) renderPhotos();
 }
 
 function updateStats() {
@@ -89,72 +72,91 @@ function updateStats() {
         return wDate >= startOfWeek;
     }).length;
 
-    document.getElementById('weekly-workouts').textContent = weeklyCount;
+    const weeklyEl = document.getElementById('weekly-workouts');
+    if (weeklyEl) weeklyEl.textContent = weeklyCount;
 }
 
 // WORKOUT LOGIC
 function setupEventListeners() {
     // Workout Form
-    document.getElementById('workout-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const newWorkout = {
-            id: Date.now(),
-            date: new Date().toISOString(),
-            name: document.getElementById('exercise-name').value,
-            weight: document.getElementById('exercise-weight').value,
-            sets: document.getElementById('exercise-sets').value,
-            notes: document.getElementById('exercise-notes').value
-        };
-        
-        APP_DATA.workouts.unshift(newWorkout); // Add to top
-        saveData();
-        e.target.reset();
-        alert('Latihan berhasil disimpan!');
-        navTo('workout'); // Go to list
-    });
+    const workoutForm = document.getElementById('workout-form');
+    if (workoutForm) {
+        workoutForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newWorkout = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                name: document.getElementById('exercise-name').value,
+                weight: document.getElementById('exercise-weight').value,
+                sets: document.getElementById('exercise-sets').value,
+                notes: document.getElementById('exercise-notes').value
+            };
+            
+            APP_DATA.workouts.unshift(newWorkout); // Add to top
+            saveData();
+            e.target.reset();
+            alert('Latihan berhasil disimpan!');
+            window.location.href = 'workout.html'; // Reload/Stay on list
+        });
+    }
 
     // Settings Save
-    document.getElementById('save-settings').addEventListener('click', () => {
-        APP_DATA.settings.apiKey = document.getElementById('api-key').value;
-        APP_DATA.settings.username = document.getElementById('settings-name').value;
-        APP_DATA.settings.startWeight = document.getElementById('settings-weight').value;
-        saveData();
-        alert('Pengaturan disimpan!');
-    });
+    const saveSettingsBtn = document.getElementById('save-settings');
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', () => {
+            // APP_DATA.settings.apiKey = document.getElementById('api-key').value; // Removed
+            APP_DATA.settings.username = document.getElementById('settings-name').value;
+            APP_DATA.settings.startWeight = document.getElementById('settings-weight').value;
+            saveData();
+            alert('Pengaturan disimpan!');
+        });
+    }
 
     // Clear Data
-    document.getElementById('clear-data').addEventListener('click', () => {
-        if(confirm('Yakin ingin menghapus semua data? Tidak bisa dikembalikan.')) {
-            localStorage.clear();
-            location.reload();
-        }
-    });
+    const clearDataBtn = document.getElementById('clear-data');
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener('click', () => {
+            if(confirm('Yakin ingin menghapus semua data? Tidak bisa dikembalikan.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        });
+    }
 
     // Chat
-    document.getElementById('send-btn').addEventListener('click', sendMessage);
-    document.getElementById('user-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
+    const sendBtn = document.getElementById('send-btn');
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendMessage);
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    }
 
     // Photo Upload
-    document.getElementById('upload-btn').addEventListener('click', handlePhotoUpload);
+    const uploadBtn = document.getElementById('upload-btn');
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', handlePhotoUpload);
+    }
 }
 
 function renderWorkoutHistory() {
     const container = document.getElementById('workout-history');
+    if (!container) return;
     container.innerHTML = '';
 
     APP_DATA.workouts.forEach(w => {
         const date = new Date(w.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
         const div = document.createElement('div');
-        div.className = 'history-item';
+        div.className = 'p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm mb-3';
         div.innerHTML = `
-            <div class="history-date">${date}</div>
-            <div class="history-details">
-                ${w.name} <br>
-                <span style="color: var(--primary-color)">${w.weight}</span> | ${w.sets}
+            <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-medium">${date}</div>
+            <div class="flex justify-between items-start mb-1">
+                <h3 class="text-sm font-medium text-white">${w.name}</h3>
+                <div class="text-xs font-medium text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded-md border border-indigo-500/20">
+                    ${w.weight}kg <span class="text-zinc-500 mx-1">|</span> ${w.sets} set
+                </div>
             </div>
-            <div style="font-size: 0.9rem; color: #ccc; margin-top: 5px;">"${w.notes}"</div>
+            <div class="text-xs text-zinc-400 italic">"${w.notes}"</div>
         `;
         container.appendChild(div);
     });
@@ -174,22 +176,13 @@ async function sendMessage() {
     const loadingId = addMessage('Sedang berpikir...', 'bot-message');
 
     // AI Logic
-    let responseText = "Maaf, saya butuh API Key untuk menjawab. Silakan isi di menu Pengaturan.";
+    let responseText = "";
     
-    if (APP_DATA.settings.apiKey) {
-        try {
-            responseText = await callAIAPI(text);
-        } catch (error) {
-            responseText = "Error: Gagal menghubungi AI. Cek koneksi atau API Key.";
-            console.error(error);
-        }
-    } else {
-        // Mock response for demo if no key
-        if (text.toLowerCase().includes('telur')) {
-            responseText = "1 butir telur besar rebus mengandung sekitar 78 kalori, 6g protein, dan 5g lemak.";
-        } else if (text.toLowerCase().includes('karet merah')) {
-            responseText = "Resistance band warna merah biasanya setara dengan beban ringan-sedang, sekitar 5-10 kg tergantung merknya.";
-        }
+    try {
+        responseText = await callAIAPI(text);
+    } catch (error) {
+        responseText = "Error: Gagal menghubungi AI. Cek koneksi internet.";
+        console.error(error);
     }
 
     // Remove loading and show response
@@ -203,7 +196,13 @@ function addMessage(text, className) {
     const container = document.getElementById('chat-messages');
     const div = document.createElement('div');
     const id = Date.now();
-    div.className = `message ${className}`;
+    
+    // Tailwind classes based on type
+    const baseClasses = "max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed mb-4";
+    const userClasses = "bg-indigo-600 text-white ml-auto rounded-br-none shadow-lg shadow-indigo-600/10";
+    const botClasses = "bg-zinc-800 text-zinc-200 mr-auto rounded-bl-none border border-zinc-700";
+    
+    div.className = `${baseClasses} ${className === 'user-message' ? userClasses : botClasses}`;
     div.textContent = text;
     div.dataset.msgId = id;
     container.appendChild(div);
@@ -223,28 +222,27 @@ async function callAIAPI(prompt) {
         Jawab dengan singkat, padat, dan suportif. Bahasa Indonesia.
     `;
 
-    // NOTE: This is a generic fetch structure. 
-    // User needs to provide the specific endpoint structure later.
-    // Assuming OpenAI format for now as a placeholder.
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const apiKey = APP_DATA.settings.apiKey || DEFAULT_API_KEY;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${APP_DATA.settings.apiKey}`
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            model: "gpt-3.5-turbo", // Or whatever model they use
-            messages: [
-                {role: "system", content: systemPrompt},
-                {role: "user", content: prompt}
-            ]
+            contents: [{
+                parts: [{
+                    text: systemPrompt + "\n\nUser Question: " + prompt
+                }]
+            }]
         })
     });
 
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
-    return data.choices[0].message.content;
+    // Gemini response structure
+    return data.candidates[0].content.parts[0].text;
 }
 
 // PHOTO UPLOAD LOGIC (Base64 + Resize)
@@ -290,15 +288,16 @@ function handlePhotoUpload() {
 
 function renderPhotos() {
     const container = document.getElementById('photo-grid');
+    if (!container) return;
     container.innerHTML = '';
     
     APP_DATA.photos.forEach(p => {
         const div = document.createElement('div');
-        div.className = 'photo-item';
+        div.className = 'relative aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 group';
         const date = new Date(p.date).toLocaleDateString();
         div.innerHTML = `
-            <img src="${p.data}" alt="Progress">
-            <div class="photo-date">${date}</div>
+            <img src="${p.data}" alt="Progress" class="w-full h-full object-cover">
+            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-2 text-[10px] text-white text-center opacity-0 group-hover:opacity-100 transition-opacity">${date}</div>
         `;
         container.appendChild(div);
     });
@@ -308,41 +307,67 @@ function renderPhotos() {
 let weightChart;
 
 function initChart() {
-    const ctx = document.getElementById('weightChart').getContext('2d');
-    
-    // Mock data generation from workouts (assuming weight is tracked in workouts for now, 
-    // or we could add a specific weight tracker. For now, let's just show workout frequency)
-    
+    const ctxEl = document.getElementById('weightChart');
+    if (!ctxEl) return; // Only run if chart canvas exists
+    const ctx = ctxEl.getContext('2d');
+
+    // Gradient
+    let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)'); // Indigo
+    gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
+    // Mock data generation from workouts
     weightChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
             datasets: [{
                 label: 'Frekuensi Latihan',
-                data: [0, 0, 0, 0], // Placeholder
-                borderColor: '#00e676',
-                tension: 0.4
+                data: [0, 0, 0, 0, 0, 0, 0], // Placeholder
+                borderColor: '#6366f1', // Indigo 500
+                backgroundColor: gradient,
+                borderWidth: 2,
+                pointBackgroundColor: '#09090b',
+                pointBorderColor: '#6366f1',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.4, // Smooth curve
+                fill: true
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                title: { display: true, text: 'Aktivitas Latihan Bulanan', color: '#fff' }
+                tooltip: {
+                    backgroundColor: '#18181b',
+                    titleColor: '#a1a1aa',
+                    bodyColor: '#fff',
+                    borderColor: '#27272a',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false,
+                    titleFont: { family: 'Inter', size: 10 },
+                    bodyFont: { family: 'Inter', size: 12, weight: '500' }
+                }
             },
             scales: {
-                y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#fff' } },
-                x: { grid: { display: false }, ticks: { color: '#fff' } }
-            }
+                x: {
+                    grid: { display: false, drawBorder: false },
+                    ticks: { color: '#52525b', font: { family: 'Inter', size: 10 } }
+                },
+                y: { display: false }
+            },
+            interaction: { intersect: false, mode: 'index' },
         }
     });
+    
+    updateChart();
 }
 
 function updateChart() {
-    // Simple logic: Count workouts per week for the last 4 weeks
-    // This is a bit complex to do perfectly without a proper calendar library, 
-    // so we'll do a simple "Last 7 days, 7-14 days ago, etc" grouping.
-    
     if (!weightChart) return;
 
     const now = new Date();
