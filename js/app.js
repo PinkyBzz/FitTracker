@@ -412,28 +412,81 @@ function setupEventListeners() {
 
     // Workout Form
     const workoutForm = document.getElementById('workout-form');
+    const exerciseDateInput = document.getElementById('exercise-date');
+    
+    // Set default date to today
+    if (exerciseDateInput) {
+        exerciseDateInput.valueAsDate = new Date();
+    }
+
     if (workoutForm) {
         workoutForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            const editId = document.getElementById('edit-workout-id').value;
+            const dateVal = document.getElementById('exercise-date').value;
             const sets = document.getElementById('exercise-sets').value;
             const reps = document.getElementById('exercise-reps').value;
             
-            const newWorkout = {
-                id: Date.now(),
-                date: new Date().toISOString(),
-                name: document.getElementById('exercise-name').value,
-                weight: document.getElementById('exercise-weight').value,
-                sets: sets,
-                reps: reps,
-                notes: document.getElementById('exercise-notes').value
-            };
+            // Construct Date object from input (which is YYYY-MM-DD)
+            // We want to preserve the time if editing, or use current time if new but backdated? 
+            // Actually, for backdating, time doesn't matter much, usually set to noon or keep current time.
+            // Let's just use the date string + current time for new logs.
             
-            APP_DATA.workouts.unshift(newWorkout); // Add to top
+            let finalDate = new Date().toISOString();
+            if (dateVal) {
+                const d = new Date(dateVal);
+                const now = new Date();
+                d.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+                finalDate = d.toISOString();
+            }
+
+            if (editId) {
+                // EDIT MODE
+                const index = APP_DATA.workouts.findIndex(w => w.id == editId);
+                if (index !== -1) {
+                    APP_DATA.workouts[index] = {
+                        ...APP_DATA.workouts[index],
+                        date: finalDate,
+                        name: document.getElementById('exercise-name').value,
+                        weight: document.getElementById('exercise-weight').value,
+                        sets: sets,
+                        reps: reps,
+                        notes: document.getElementById('exercise-notes').value
+                    };
+                    alert('Latihan berhasil diperbarui!');
+                }
+                resetWorkoutForm();
+            } else {
+                // ADD MODE
+                const newWorkout = {
+                    id: Date.now(),
+                    date: finalDate,
+                    name: document.getElementById('exercise-name').value,
+                    weight: document.getElementById('exercise-weight').value,
+                    sets: sets,
+                    reps: reps,
+                    notes: document.getElementById('exercise-notes').value
+                };
+                APP_DATA.workouts.unshift(newWorkout);
+                alert('Latihan berhasil disimpan!');
+            }
+            
             saveData();
             e.target.reset();
-            alert('Latihan berhasil disimpan!');
-            window.location.href = 'workout.html'; // Reload/Stay on list
+            if (exerciseDateInput) exerciseDateInput.valueAsDate = new Date(); // Reset date to today
+            
+            // If on workout page, reload to show changes (or just re-render)
+            if (window.location.pathname.includes('workout.html')) {
+                renderWorkoutHistory();
+                updatePRs();
+            }
         });
+
+        // Cancel Edit
+        const cancelBtn = document.getElementById('cancel-edit-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', resetWorkoutForm);
+        }
     }
 
     // Settings Save
@@ -489,10 +542,55 @@ function setupEventListeners() {
 
     // Food Chat
     const sendFoodBtn = document.getElementById('send-food-btn');
+    const chatDateInput = document.getElementById('chat-date-input');
+    
+    if (chatDateInput) {
+        chatDateInput.valueAsDate = new Date();
+    }
+
     if (sendFoodBtn) {
         sendFoodBtn.addEventListener('click', sendFoodMessage);
         document.getElementById('food-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendFoodMessage();
+        });
+    }
+
+    // Meal Edit Form
+    const editMealForm = document.getElementById('edit-meal-form');
+    if (editMealForm) {
+        editMealForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-meal-id').value;
+            const dateVal = document.getElementById('edit-meal-date').value;
+            
+            let finalDate = new Date().toISOString();
+            if (dateVal) {
+                const d = new Date(dateVal);
+                const now = new Date();
+                d.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+                finalDate = d.toISOString();
+            }
+
+            const index = APP_DATA.meals.findIndex(m => m.id == id);
+            if (index !== -1) {
+                APP_DATA.meals[index] = {
+                    ...APP_DATA.meals[index],
+                    date: finalDate,
+                    food: document.getElementById('edit-meal-name').value,
+                    calories: parseInt(document.getElementById('edit-meal-cals').value) || 0,
+                    protein: parseInt(document.getElementById('edit-meal-protein').value) || 0,
+                    carbs: parseInt(document.getElementById('edit-meal-carbs').value) || 0,
+                    fats: parseInt(document.getElementById('edit-meal-fat').value) || 0
+                };
+                saveData();
+                renderMealHistory();
+                document.getElementById('edit-meal-modal').classList.add('hidden');
+                alert('Data makanan diperbarui!');
+            }
+        });
+
+        document.getElementById('cancel-meal-edit').addEventListener('click', () => {
+            document.getElementById('edit-meal-modal').classList.add('hidden');
         });
     }
 
@@ -555,6 +653,64 @@ function renderDashboardWorkouts() {
     });
 }
 
+function resetWorkoutForm() {
+    const form = document.getElementById('workout-form');
+    const submitText = document.getElementById('workout-submit-text');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    const editIdInput = document.getElementById('edit-workout-id');
+    const dateInput = document.getElementById('exercise-date');
+
+    if (form) form.reset();
+    if (dateInput) dateInput.valueAsDate = new Date();
+    if (submitText) submitText.textContent = 'Simpan Log';
+    if (cancelBtn) cancelBtn.classList.add('hidden');
+    if (editIdInput) editIdInput.value = '';
+    
+    // Scroll to top of form
+    if (form) form.scrollIntoView({ behavior: 'smooth' });
+}
+
+window.editWorkout = function(id) {
+    const workout = APP_DATA.workouts.find(w => w.id === id);
+    if (!workout) return;
+
+    const form = document.getElementById('workout-form');
+    const submitText = document.getElementById('workout-submit-text');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    const editIdInput = document.getElementById('edit-workout-id');
+    
+    if (!form) {
+        // If not on workout page, redirect? Or just alert?
+        // Assuming this is called from workout history list which is on workout.html
+        return;
+    }
+
+    // Populate Form
+    document.getElementById('exercise-name').value = workout.name;
+    document.getElementById('exercise-weight').value = workout.weight;
+    document.getElementById('exercise-sets').value = workout.sets;
+    document.getElementById('exercise-reps').value = workout.reps || '';
+    document.getElementById('exercise-notes').value = workout.notes;
+    
+    // Date
+    const dateInput = document.getElementById('exercise-date');
+    if (dateInput) {
+        const d = new Date(workout.date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        dateInput.value = `${year}-${month}-${day}`;
+    }
+
+    // UI Changes
+    if (editIdInput) editIdInput.value = id;
+    if (submitText) submitText.textContent = 'Update Log';
+    if (cancelBtn) cancelBtn.classList.remove('hidden');
+
+    // Scroll to form
+    form.scrollIntoView({ behavior: 'smooth' });
+}
+
 function renderWorkoutHistory(filterDate = null) {
     const container = document.getElementById('workout-history');
     if (!container) return;
@@ -592,9 +748,14 @@ function renderWorkoutHistory(filterDate = null) {
         div.innerHTML = `
             <div class="flex justify-between items-start">
                 <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-medium">${date}</div>
-                <button onclick="deleteWorkout(${w.id})" class="text-zinc-600 hover:text-red-500 transition-colors p-1 -mr-2 -mt-2 opacity-0 group-hover:opacity-100">
-                    <span class="iconify" data-icon="lucide:trash-2" data-width="14"></span>
-                </button>
+                <div class="flex gap-1 -mr-2 -mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="editWorkout(${w.id})" class="text-zinc-600 hover:text-indigo-400 transition-colors p-1" title="Edit">
+                        <span class="iconify" data-icon="lucide:edit-2" data-width="14"></span>
+                    </button>
+                    <button onclick="deleteWorkout(${w.id})" class="text-zinc-600 hover:text-red-500 transition-colors p-1" title="Hapus">
+                        <span class="iconify" data-icon="lucide:trash-2" data-width="14"></span>
+                    </button>
+                </div>
             </div>
             <div class="flex justify-between items-start mb-1">
                 <h3 class="text-sm font-medium text-white">${w.name}</h3>
@@ -681,9 +842,14 @@ function renderMealHistory(filterDate = null) {
         div.innerHTML = `
             <div class="flex justify-between items-start">
                 <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-medium">${date}</div>
-                <button onclick="deleteMeal(${m.id})" class="text-zinc-600 hover:text-red-500 transition-colors p-1 -mr-2 -mt-2 opacity-0 group-hover:opacity-100">
-                    <span class="iconify" data-icon="lucide:trash-2" data-width="14"></span>
-                </button>
+                <div class="flex gap-1 -mr-2 -mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="editMeal(${m.id})" class="text-zinc-600 hover:text-green-400 transition-colors p-1" title="Edit">
+                        <span class="iconify" data-icon="lucide:edit-2" data-width="14"></span>
+                    </button>
+                    <button onclick="deleteMeal(${m.id})" class="text-zinc-600 hover:text-red-500 transition-colors p-1" title="Hapus">
+                        <span class="iconify" data-icon="lucide:trash-2" data-width="14"></span>
+                    </button>
+                </div>
             </div>
             <div class="flex justify-between items-start mb-1">
                 <h3 class="text-sm font-medium text-white">${m.food}</h3>
@@ -705,6 +871,26 @@ function renderMealHistory(filterDate = null) {
         `;
         container.appendChild(div);
     });
+}
+
+window.editMeal = function(id) {
+    const meal = APP_DATA.meals.find(m => m.id === id);
+    if (!meal) return;
+
+    document.getElementById('edit-meal-id').value = id;
+    document.getElementById('edit-meal-name').value = meal.food;
+    document.getElementById('edit-meal-cals').value = meal.calories;
+    document.getElementById('edit-meal-protein').value = meal.protein;
+    document.getElementById('edit-meal-carbs').value = meal.carbs;
+    document.getElementById('edit-meal-fat').value = meal.fats;
+
+    const d = new Date(meal.date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    document.getElementById('edit-meal-date').value = `${year}-${month}-${day}`;
+
+    document.getElementById('edit-meal-modal').classList.remove('hidden');
 }
 
 window.deleteMeal = function(id) {
@@ -802,9 +988,19 @@ function showMealSuggestion(data) {
 }
 
 function saveSuggestedMeal(data, btnElement) {
+    const dateInput = document.getElementById('chat-date-input');
+    let finalDate = new Date().toISOString();
+    
+    if (dateInput && dateInput.value) {
+        const d = new Date(dateInput.value);
+        const now = new Date();
+        d.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+        finalDate = d.toISOString();
+    }
+
     const newMeal = {
         id: Date.now(),
-        date: new Date().toISOString(),
+        date: finalDate,
         food: data.food,
         calories: data.calories || 0,
         protein: data.protein || 0,
@@ -815,6 +1011,11 @@ function saveSuggestedMeal(data, btnElement) {
     APP_DATA.meals.unshift(newMeal);
     saveData();
     
+    // Refresh list if on calculator page
+    if (document.getElementById('meal-history')) {
+        renderMealHistory();
+    }
+
     btnElement.innerHTML = `<span class="iconify" data-icon="lucide:check" data-width="16"></span> Tercatat!`;
     btnElement.className = "w-full bg-zinc-700 text-zinc-300 text-xs font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 mt-2 cursor-default border border-zinc-600";
     btnElement.onclick = null;

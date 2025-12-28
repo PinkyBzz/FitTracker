@@ -138,9 +138,15 @@
                         <span class="iconify text-indigo-500" data-icon="lucide:dumbbell" data-width="20"></span>
                     </div>
 
-                    <div class="p-5 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm h-fit sticky top-24 card-3d" data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.1">
+                    <div class="p-5 rounded-3xl bg-zinc-900 border border-zinc-800 h-fit card-3d" data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.1">
                         <h3 class="text-sm font-medium text-zinc-400 mb-4 hidden md:block">Input Latihan Baru</h3>
                         <form id="workout-form" class="space-y-4">
+                            <input type="hidden" id="edit-workout-id">
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-500 mb-1.5 uppercase tracking-wide">Tanggal</label>
+                                <input type="date" id="exercise-date" required 
+                                    class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-zinc-600 text-white">
+                            </div>
                             <div>
                                 <label class="block text-xs font-medium text-zinc-500 mb-1.5 uppercase tracking-wide">Nama Latihan</label>
                                 <input type="text" id="exercise-name" required placeholder="Contoh: Push Up" 
@@ -170,15 +176,18 @@
                                 <textarea id="exercise-notes" placeholder="Rasanya ringan..." rows="2"
                                     class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-zinc-600 resize-none text-white"></textarea>
                             </div>
-                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition-colors shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 btn-3d btn-3d-dark">
+                            <button type="submit" id="workout-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition-colors shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 btn-3d btn-3d-dark">
                                 <span class="iconify" data-icon="lucide:plus-circle" data-width="18"></span>
-                                Simpan Log
+                                <span id="workout-submit-text">Simpan Log</span>
+                            </button>
+                            <button type="button" id="cancel-edit-btn" class="hidden w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-2 rounded-xl transition-colors border border-zinc-700">
+                                Batal Edit
                             </button>
                         </form>
                     </div>
 
                     <!-- PR Card -->
-                    <div class="mt-6 p-5 rounded-3xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm card-3d" data-tilt data-tilt-max="3" data-tilt-speed="400">
+                    <div class="mt-6 p-5 rounded-3xl bg-zinc-900 border border-zinc-800">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-sm font-medium text-zinc-400">Rekor Terbaik (PR)</h3>
                             <span class="iconify text-yellow-500" data-icon="lucide:trophy" data-width="16"></span>
