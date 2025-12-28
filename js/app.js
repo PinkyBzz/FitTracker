@@ -288,18 +288,43 @@ function handlePhotoUpload() {
     }
 }
 
+function deletePhoto(id) {
+    if(confirm('Yakin ingin menghapus foto ini?')) {
+        APP_DATA.photos = APP_DATA.photos.filter(p => p.id !== id);
+        saveData();
+        renderPhotos();
+    }
+}
+
 function renderPhotos() {
     const container = document.getElementById('photo-grid');
     if (!container) return;
     container.innerHTML = '';
     
+    if (APP_DATA.photos.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center py-12 text-zinc-500">
+                <span class="iconify mb-2 opacity-50" data-icon="lucide:image-off" data-width="32"></span>
+                <p class="text-xs">Belum ada foto</p>
+            </div>
+        `;
+        return;
+    }
+    
     APP_DATA.photos.forEach(p => {
         const div = document.createElement('div');
         div.className = 'relative aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 group';
-        const date = new Date(p.date).toLocaleDateString();
+        const date = new Date(p.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' });
+        
         div.innerHTML = `
-            <img src="${p.data}" alt="Progress" class="w-full h-full object-cover">
-            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-2 text-[10px] text-white text-center opacity-0 group-hover:opacity-100 transition-opacity">${date}</div>
+            <img src="${p.data}" alt="Progress" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+            
+            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col items-center justify-center gap-2 backdrop-blur-[2px]">
+                <button onclick="deletePhoto(${p.id})" class="w-10 h-10 rounded-full bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/50 flex items-center justify-center transition-all transform hover:scale-110 shadow-lg" title="Hapus Foto">
+                    <span class="iconify" data-icon="lucide:trash-2" data-width="18"></span>
+                </button>
+                <span class="text-[10px] text-zinc-300 font-medium bg-black/50 px-2 py-1 rounded-full border border-white/10">${date}</span>
+            </div>
         `;
         container.appendChild(div);
     });
