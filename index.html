@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Fitness Tracker</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Chart.js for progress tracking -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>FitTrack AI</h1>
+            <div id="user-greeting">Halo, Pejuang Otot!</div>
+        </header>
+
+        <main id="main-content">
+            <!-- SECTIONS will be toggled via JavaScript -->
+
+            <!-- 1. DASHBOARD -->
+            <section id="dashboard" class="active-section">
+                <div class="card summary-card">
+                    <h3>Progress Minggu Ini</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Workout</span>
+                            <span class="stat-value" id="weekly-workouts">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Berat Badan</span>
+                            <span class="stat-value" id="current-weight">-- kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card chart-card">
+                    <canvas id="weightChart"></canvas>
+                </div>
+
+                <div class="card quick-actions">
+                    <button onclick="navTo('workout')"><i class="fas fa-dumbbell"></i> Catat Latihan</button>
+                    <button onclick="navTo('ai-coach')"><i class="fas fa-robot"></i> Tanya AI</button>
+                </div>
+            </section>
+
+            <!-- 2. WORKOUT LOG -->
+            <section id="workout" class="hidden-section">
+                <h2>Jurnal Latihan</h2>
+                <div class="card">
+                    <form id="workout-form">
+                        <div class="form-group">
+                            <label>Nama Latihan (mis: Bench Press)</label>
+                            <input type="text" id="exercise-name" required placeholder="Contoh: Push Up">
+                        </div>
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label>Beban (kg/benda)</label>
+                                <input type="text" id="exercise-weight" placeholder="Contoh: 10kg atau 'Karet Merah'">
+                            </div>
+                            <div class="form-group">
+                                <label>Set x Reps</label>
+                                <input type="text" id="exercise-sets" placeholder="3 x 12">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Catatan (Opsional)</label>
+                            <textarea id="exercise-notes" placeholder="Rasanya ringan, minggu depan tambah."></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Simpan Log</button>
+                    </form>
+                </div>
+
+                <div id="workout-history" class="history-list">
+                    <!-- History items will be injected here -->
+                </div>
+            </section>
+
+            <!-- 3. AI COACH -->
+            <section id="ai-coach" class="hidden-section">
+                <h2>Konsultasi AI</h2>
+                <div class="chat-container">
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="message bot-message">
+                            Halo! Saya AI Coach kamu. Tanya saya tentang kalori makanan, konversi alat gym rumah, atau tips latihan!
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="user-input" placeholder="Tulis pesan... (mis: Telur 2 butir berapa kalori?)">
+                        <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+                <div class="api-notice">
+                    <small>*Pastikan API Key sudah diisi di menu Pengaturan.</small>
+                </div>
+            </section>
+
+            <!-- 4. GALLERY / PROGRESS -->
+            <section id="gallery" class="hidden-section">
+                <h2>Foto Progress</h2>
+                <div class="card upload-card">
+                    <p>Upload foto perkembangan tubuhmu. Data disimpan di browser ini.</p>
+                    <input type="file" id="photo-input" accept="image/*">
+                    <button id="upload-btn" class="btn-secondary">Simpan Foto</button>
+                </div>
+                <div id="photo-grid" class="photo-grid">
+                    <!-- Photos injected here -->
+                </div>
+            </section>
+
+            <!-- 5. SETTINGS -->
+            <section id="settings" class="hidden-section">
+                <h2>Pengaturan</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label>API Key (OpenAI/Gemini/dll)</label>
+                        <input type="password" id="api-key" placeholder="Masukkan API Key disini">
+                        <small>Key disimpan lokal di browser kamu.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Pengguna</label>
+                        <input type="text" id="settings-name" placeholder="Nama Kamu">
+                    </div>
+                    <div class="form-group">
+                        <label>Berat Badan Awal (kg)</label>
+                        <input type="number" id="settings-weight" placeholder="0">
+                    </div>
+                    <button id="save-settings" class="btn-primary">Simpan Pengaturan</button>
+                    <hr>
+                    <button id="clear-data" class="btn-danger">Hapus Semua Data</button>
+                </div>
+            </section>
+
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="navTo('dashboard')">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" onclick="navTo('workout')">
+                <i class="fas fa-dumbbell"></i>
+                <span>Log</span>
+            </button>
+            <button class="nav-item" onclick="navTo('ai-coach')">
+                <i class="fas fa-robot"></i>
+                <span>AI</span>
+            </button>
+            <button class="nav-item" onclick="navTo('gallery')">
+                <i class="fas fa-images"></i>
+                <span>Foto</span>
+            </button>
+            <button class="nav-item" onclick="navTo('settings')">
+                <i class="fas fa-cog"></i>
+                <span>Set</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
