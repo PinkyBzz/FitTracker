@@ -170,11 +170,88 @@ async function sendMessage() {
         responseText = `Error: ${error.message || "Gagal menghubungi AI."}`;
     }
 
-    // Remove loading and show response
+    // Remove loading
     const loadingMsg = document.querySelector(`[data-msg-id="${loadingId}"]`);
     if (loadingMsg) loadingMsg.remove();
     
-    addMessage(responseText, 'bot-message');
+    // Parse JSON if present
+    const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
+    const match = responseText.match(jsonRegex);
+    
+    let displayMessage = responseText;
+    let workoutData = null;
+
+    if (match) {
+        try {
+            workoutData = JSON.parse(match[1]);
+            // Remove the JSON block from the message shown to user
+            displayMessage = responseText.replace(match[0], '').trim();
+        } catch (e) {
+            console.error("JSON Parse Error", e);
+        }
+    }
+    
+    addMessage(displayMessage, 'bot-message');
+
+    // If workout data was detected, show the suggestion card
+    if (workoutData) {
+        showWorkoutSuggestion(workoutData);
+    }
+}
+
+function showWorkoutSuggestion(data) {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = "max-w-[85%] mr-auto mb-4";
+    
+    div.innerHTML = `
+        <div class="bg-zinc-800/50 border border-indigo-500/30 rounded-2xl p-4 space-y-3 shadow-lg">
+            <div class="flex items-center gap-2 text-indigo-400 mb-1">
+                <span class="iconify" data-icon="lucide:dumbbell" data-width="18"></span>
+                <span class="text-xs font-bold uppercase tracking-wider">Saran Pencatatan</span>
+            </div>
+            <div class="space-y-1">
+                <div class="text-white font-medium">${data.name}</div>
+                <div class="text-xs text-zinc-400 flex gap-3">
+                    <span class="bg-zinc-700/50 px-2 py-0.5 rounded text-zinc-300">${data.weight} kg</span>
+                    <span class="bg-zinc-700/50 px-2 py-0.5 rounded text-zinc-300">${data.sets} sets</span>
+                </div>
+                <div class="text-xs text-zinc-500 italic">"${data.notes}"</div>
+            </div>
+            <button class="save-workout-btn w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 mt-2 shadow-lg shadow-indigo-600/20">
+                <span class="iconify" data-icon="lucide:plus-circle" data-width="16"></span>
+                Simpan ke Log
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+
+    // Add event listener
+    const btn = div.querySelector('.save-workout-btn');
+    btn.onclick = () => {
+        saveSuggestedWorkout(data, btn);
+    };
+}
+
+function saveSuggestedWorkout(data, btnElement) {
+    const newWorkout = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        name: data.name,
+        weight: data.weight || 0,
+        sets: data.sets || 1,
+        notes: data.notes || ''
+    };
+    
+    APP_DATA.workouts.unshift(newWorkout);
+    saveData();
+    
+    // Update Button State
+    btnElement.innerHTML = `<span class="iconify" data-icon="lucide:check" data-width="16"></span> Tersimpan!`;
+    btnElement.className = "w-full bg-green-600 text-white text-xs font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 mt-2 cursor-default";
+    btnElement.onclick = null;
 }
 
 function addMessage(text, className) {
@@ -204,6 +281,22 @@ async function callAIAPI(prompt) {
         2. Mengkonversi makanan ke estimasi kalori (Cari data rata-rata).
         3. Mengkonversi alat rumah (botol air, buku, resistance band warna) ke estimasi beban kg.
         4. Memberikan motivasi.
+        
+        INSTRUKSI KHUSUS PENCATATAN:
+        Jika user menceritakan latihan yang baru saja dilakukan (misal: "saya habis angkat galon", "latihan bicep pake buku"), 
+        kamu HARUS mengekstrak data latihan tersebut dan menaruhnya dalam format JSON di bagian paling bawah responmu.
+        
+        Contoh format respon:
+        "Kerja bagus! Menggunakan buku sebagai beban adalah ide kreatif. Itu setara dengan sekitar 2kg."
+        \`\`\`json
+        {
+            "name": "Bicep Curl (Buku)",
+            "weight": 2,
+            "sets": 3,
+            "notes": "Menggunakan buku cetak tebal"
+        }
+        \`\`\`
+        
         Jawab dengan singkat, padat, dan suportif. Bahasa Indonesia.
     `;
 
