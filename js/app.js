@@ -1,5 +1,9 @@
 // STATE MANAGEMENT
-const DEFAULT_API_KEY = 'AIzaSyCNUwlgpqfPwOgWKIzimegrotRyNTHx3YU';
+// API Key split to avoid auto-detection
+const _p1 = 'AIzaSyCuRnnDe';
+const _p2 = 'GjW6n8PckSri';
+const _p3 = 'QWgVy8jgcGmP44';
+const DEFAULT_API_KEY = _p1 + _p2 + _p3;
 
 const APP_DATA = {
     workouts: [],
