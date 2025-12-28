@@ -7,6 +7,7 @@ const DEFAULT_API_KEY = _p1 + _p2 + _p3;
 
 const APP_DATA = {
     workouts: [],
+    meals: [],
     photos: [],
     settings: {
         apiKey: DEFAULT_API_KEY,
@@ -25,10 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadAllData() {
     const savedWorkouts = localStorage.getItem('pt_workouts');
+    const savedMeals = localStorage.getItem('pt_meals');
     const savedPhotos = localStorage.getItem('pt_photos');
     const savedSettings = localStorage.getItem('pt_settings');
 
     if (savedWorkouts) APP_DATA.workouts = JSON.parse(savedWorkouts);
+    if (savedMeals) APP_DATA.meals = JSON.parse(savedMeals);
     if (savedPhotos) APP_DATA.photos = JSON.parse(savedPhotos);
     if (savedSettings) {
         APP_DATA.settings = JSON.parse(savedSettings);
@@ -39,6 +42,7 @@ function loadAllData() {
 
 function saveData() {
     localStorage.setItem('pt_workouts', JSON.stringify(APP_DATA.workouts));
+    localStorage.setItem('pt_meals', JSON.stringify(APP_DATA.meals));
     localStorage.setItem('pt_photos', JSON.stringify(APP_DATA.photos));
     localStorage.setItem('pt_settings', JSON.stringify(APP_DATA.settings));
     updateUI();
@@ -63,6 +67,7 @@ function updateUI() {
 
     // Lists
     if (document.getElementById('workout-history')) renderWorkoutHistory();
+    if (document.getElementById('meal-history')) renderMealHistory();
     if (document.getElementById('photo-grid')) renderPhotos();
 }
 
@@ -117,6 +122,15 @@ function setupEventListeners() {
         });
     }
 
+    // Food Chat
+    const sendFoodBtn = document.getElementById('send-food-btn');
+    if (sendFoodBtn) {
+        sendFoodBtn.addEventListener('click', sendFoodMessage);
+        document.getElementById('food-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendFoodMessage();
+        });
+    }
+
     // Photo Upload
     const uploadBtn = document.getElementById('upload-btn');
     if (uploadBtn) {
@@ -147,7 +161,151 @@ function renderWorkoutHistory() {
     });
 }
 
+function renderMealHistory() {
+    const container = document.getElementById('meal-history');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (APP_DATA.meals.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center text-zinc-500 text-xs py-4">Belum ada data makan hari ini</div>`;
+        return;
+    }
+
+    // Filter for today only? Or show all? Let's show all for now, sorted by date
+    APP_DATA.meals.forEach(m => {
+        const date = new Date(m.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 backdrop-blur-sm';
+        div.innerHTML = `
+            <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-medium">${date}</div>
+            <div class="flex justify-between items-start mb-1">
+                <h3 class="text-sm font-medium text-white">${m.food}</h3>
+                <div class="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-md border border-green-500/20">
+                    ${m.calories} kcal
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-400">
+                <div class="bg-zinc-800/50 rounded p-1 text-center">
+                    <span class="block text-zinc-500">P</span> ${m.protein}g
+                </div>
+                <div class="bg-zinc-800/50 rounded p-1 text-center">
+                    <span class="block text-zinc-500">C</span> ${m.carbs}g
+                </div>
+                <div class="bg-zinc-800/50 rounded p-1 text-center">
+                    <span class="block text-zinc-500">F</span> ${m.fats}g
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
 // AI CHAT LOGIC
+async function sendFoodMessage() {
+    const input = document.getElementById('food-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, 'user-message', 'calc-messages');
+    input.value = '';
+
+    const loadingId = addMessage('Menghitung kalori...', 'bot-message', 'calc-messages');
+
+    let responseText = "";
+    try {
+        responseText = await callAIAPI(text, 'calculator');
+    } catch (error) {
+        console.error(error);
+        responseText = `Error: ${error.message || "Gagal menghubungi AI."}`;
+    }
+
+    const loadingMsg = document.querySelector(`[data-msg-id="${loadingId}"]`);
+    if (loadingMsg) loadingMsg.remove();
+
+    // Parse JSON
+    const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
+    const match = responseText.match(jsonRegex);
+    
+    let displayMessage = responseText;
+    let mealData = null;
+
+    if (match) {
+        try {
+            mealData = JSON.parse(match[1]);
+            displayMessage = responseText.replace(match[0], '').trim();
+        } catch (e) {
+            console.error("JSON Parse Error", e);
+        }
+    }
+    
+    addMessage(displayMessage, 'bot-message', 'calc-messages');
+
+    if (mealData) {
+        showMealSuggestion(mealData);
+    }
+}
+
+function showMealSuggestion(data) {
+    const container = document.getElementById('calc-messages');
+    const div = document.createElement('div');
+    div.className = "max-w-[85%] mr-auto mb-4";
+    
+    div.innerHTML = `
+        <div class="bg-zinc-800/50 border border-green-500/30 rounded-2xl p-4 space-y-3 shadow-lg">
+            <div class="flex items-center gap-2 text-green-400 mb-1">
+                <span class="iconify" data-icon="lucide:chef-hat" data-width="18"></span>
+                <span class="text-xs font-bold uppercase tracking-wider">Hasil Analisis</span>
+            </div>
+            <div class="space-y-1">
+                <div class="text-white font-medium">${data.food}</div>
+                <div class="text-2xl font-bold text-green-400">${data.calories} <span class="text-sm font-normal text-zinc-400">kcal</span></div>
+                <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-zinc-400">
+                    <div class="bg-zinc-900/50 rounded p-1 text-center">
+                        <span class="block text-[10px] text-zinc-500 uppercase">Protein</span> ${data.protein}g
+                    </div>
+                    <div class="bg-zinc-900/50 rounded p-1 text-center">
+                        <span class="block text-[10px] text-zinc-500 uppercase">Carbs</span> ${data.carbs}g
+                    </div>
+                    <div class="bg-zinc-900/50 rounded p-1 text-center">
+                        <span class="block text-[10px] text-zinc-500 uppercase">Fat</span> ${data.fats}g
+                    </div>
+                </div>
+            </div>
+            <button class="save-meal-btn w-full bg-green-600 hover:bg-green-500 text-white text-xs font-medium py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 mt-2 shadow-lg shadow-green-600/20">
+                <span class="iconify" data-icon="lucide:plus-circle" data-width="16"></span>
+                Catat Makanan
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+
+    const btn = div.querySelector('.save-meal-btn');
+    btn.onclick = () => {
+        saveSuggestedMeal(data, btn);
+    };
+}
+
+function saveSuggestedMeal(data, btnElement) {
+    const newMeal = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        food: data.food,
+        calories: data.calories || 0,
+        protein: data.protein || 0,
+        carbs: data.carbs || 0,
+        fats: data.fats || 0
+    };
+    
+    APP_DATA.meals.unshift(newMeal);
+    saveData();
+    
+    btnElement.innerHTML = `<span class="iconify" data-icon="lucide:check" data-width="16"></span> Tercatat!`;
+    btnElement.className = "w-full bg-zinc-700 text-zinc-300 text-xs font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 mt-2 cursor-default border border-zinc-600";
+    btnElement.onclick = null;
+}
+
 async function sendMessage() {
     const input = document.getElementById('user-input');
     const text = input.value.trim();
@@ -254,8 +412,10 @@ function saveSuggestedWorkout(data, btnElement) {
     btnElement.onclick = null;
 }
 
-function addMessage(text, className) {
-    const container = document.getElementById('chat-messages');
+function addMessage(text, className, containerId = 'chat-messages') {
+    const container = document.getElementById(containerId);
+    if (!container) return; // Safety check
+
     const div = document.createElement('div');
     const id = Date.now();
     
@@ -272,9 +432,35 @@ function addMessage(text, className) {
     return id;
 }
 
-async function callAIAPI(prompt) {
-    // SYSTEM PROMPT
-    const systemPrompt = `
+async function callAIAPI(prompt, context = 'workout') {
+    let systemPrompt = '';
+
+    if (context === 'calculator') {
+        systemPrompt = `
+        Kamu adalah AI Nutritionist.
+        
+        TUGAS UTAMA:
+        1. Analisis makanan yang disebutkan user.
+        2. Estimasi Kalori, Protein, Carbs, dan Fat.
+        3. Jawab dengan singkat dan ramah.
+        4. WAJIB sertakan blok JSON di AKHIR respon.
+
+        FORMAT JSON:
+        \`\`\`json
+        {
+            "food": "Nama Makanan (Singkat)",
+            "calories": 0,
+            "protein": 0,
+            "carbs": 0,
+            "fats": 0
+        }
+        \`\`\`
+        
+        NOTE: Angka nutrisi adalah estimasi terbaikmu.
+        `;
+    } else {
+        // Default Workout Prompt
+        systemPrompt = `
         Kamu adalah AI Fitness Coach.
         
         TUGAS UTAMA:
@@ -306,7 +492,8 @@ async function callAIAPI(prompt) {
             "notes": "Menggunakan 2 buku cetak"
         }
         \`\`\`
-    `;
+        `;
+    }
 
     const apiKey = APP_DATA.settings.apiKey || DEFAULT_API_KEY;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
