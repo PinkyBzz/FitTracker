@@ -1,5 +1,5 @@
 // STATE MANAGEMENT
-const DEFAULT_API_KEY = 'AIzaSyDdRrOAg3rOuca7EAuoD1Fzfpe1E8HMpB8';
+const DEFAULT_API_KEY = 'AIzaSyCNUwlgpqfPwOgWKIzimegrotRyNTHx3YU';
 
 const APP_DATA = {
     workouts: [],
@@ -28,11 +28,8 @@ function loadAllData() {
     if (savedPhotos) APP_DATA.photos = JSON.parse(savedPhotos);
     if (savedSettings) {
         APP_DATA.settings = JSON.parse(savedSettings);
-        // Auto-fix: Replace old expired key if found in storage
-        if (APP_DATA.settings.apiKey === 'AIzaSyA7LQ-dJGNBUUTzkuzlgd-fYhoJu-K-Iho') {
-            APP_DATA.settings.apiKey = DEFAULT_API_KEY;
-            saveData();
-        }
+        // Force update API Key
+        APP_DATA.settings.apiKey = DEFAULT_API_KEY; 
     }
 }
 
@@ -58,11 +55,7 @@ function updateUI() {
     }
 
     // Settings Specific
-    if (document.getElementById('api-key')) {
-        document.getElementById('api-key').value = APP_DATA.settings.apiKey || '';
-        document.getElementById('settings-name').value = APP_DATA.settings.username;
-        document.getElementById('settings-weight').value = APP_DATA.settings.startWeight;
-    }
+    // (Settings page removed)
 
     // Lists
     if (document.getElementById('workout-history')) renderWorkoutHistory();
@@ -107,30 +100,9 @@ function setupEventListeners() {
         });
     }
 
-    // Settings Save
-    const saveSettingsBtn = document.getElementById('save-settings');
-    if (saveSettingsBtn) {
-        saveSettingsBtn.addEventListener('click', () => {
-            const newKey = document.getElementById('api-key').value.trim();
-            if (newKey) APP_DATA.settings.apiKey = newKey;
-            
-            APP_DATA.settings.username = document.getElementById('settings-name').value;
-            APP_DATA.settings.startWeight = document.getElementById('settings-weight').value;
-            saveData();
-            alert('Pengaturan disimpan!');
-        });
-    }
+    // Settings Save (Removed)
 
-    // Clear Data
-    const clearDataBtn = document.getElementById('clear-data');
-    if (clearDataBtn) {
-        clearDataBtn.addEventListener('click', () => {
-            if(confirm('Yakin ingin menghapus semua data? Tidak bisa dikembalikan.')) {
-                localStorage.clear();
-                location.reload();
-            }
-        });
-    }
+    // Clear Data (Removed)
 
     // Chat
     const sendBtn = document.getElementById('send-btn');
