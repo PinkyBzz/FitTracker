@@ -11,7 +11,7 @@ const APP_DATA = {
     photos: [],
     settings: {
         apiKey: DEFAULT_API_KEY,
-        username: 'Pejuang Otot',
+        username: 'User',
         startWeight: 0
     }
 };

@@ -1,4 +1,4 @@
-# Personal Fitness Tracker (FitTrack AI)
+# Personal Fitness Tracker (FitTrack)
 
 Website pelacak kebugaran pribadi dengan fitur AI Coach, Jurnal Latihan, dan Galeri Progress. Dibuat khusus untuk pemula yang ingin membangun otot.
 
